@@ -88,6 +88,11 @@ enum {
      * Used for stubs on ARMv8/aarch64.
      */
     __GLDISPATCH_STUB_AARCH64,
+
+    /*!
+     * Used for stubs on PPC64LE systems.
+     */
+    __GLDISPATCH_STUB_PPC64LE,
 };
 
 /*!
