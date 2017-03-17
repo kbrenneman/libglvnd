@@ -37,11 +37,11 @@
 #include "glvnd/GLdispatchABI.h"
 
 
-// TODO: Change this macro to be the size of the dispatch stubs.
-#define PPC64LE_ENTRY_SIZE 128
+// NOTE: This must be a power of two:
+#define PPC64LE_ENTRY_SIZE 256
 
 __asm__(".section wtext,\"ax\",@progbits\n");
-__asm__(".balign 4096\n"
+__asm__(".balign 65536\n"
        ".globl public_entry_start\n"
        ".hidden public_entry_start\n"
         "public_entry_start:");
@@ -111,7 +111,7 @@ __asm__(".balign 4096\n"
 #include "mapi_tmp.h"
 
 
-__asm__(".balign 4096\n"
+__asm__(".balign 65536\n"
        ".globl public_entry_end\n"
        ".hidden public_entry_end\n"
         "public_entry_end:");
@@ -127,45 +127,48 @@ static const uint32_t ENTRY_TEMPLATE[] =
     // This is used to generate new dispatch stubs. libglvnd will copy this
     // data to the dispatch stub, and then it will patch the slot number and
     // any addresses that it needs to.
+    // NOTE!!!  NOTE!!!  NOTE!!!
+    // This data is endian-reversed from the code you would see in an assembly
+    // listing!
     // 1000:
-    0xA602087C,     // <ENTRY+000>:    mflr   0
-    0x100001F8,     // <ENTRY+004>:    std    0, 16(1)
-    0x90006CE9,     // <ENTRY+008>:    ld     11, 9000f-1000b+0(12)
-    0x00006BE9,     // <ENTRY+012>:    ld     11, 0(11)
-    0x00002B28,     // <ENTRY+016>:    cmpldi 11, 0
-    0x14008241,     // <ENTRY+020>:    beq    2000f
+    0x7C0802A6,     // <ENTRY+000>:    mflr   0
+    0xF8010010,     // <ENTRY+004>:    std    0, 16(1)
+    0xE96C0090,     // <ENTRY+008>:    ld     11, 9000f-1000b+0(12)
+    0xE96B0000,     // <ENTRY+012>:    ld     11, 0(11)
+    0x282B0000,     // <ENTRY+016>:    cmpldi 11, 0
+    0x41820014,     // <ENTRY+020>:    beq    2000f
     // 1050:
-    0xA0000CE8,     // <ENTRY+024>:    ld     0, 9000f-1000b+16(12)
-    0x2A008B7D,     // <ENTRY+028>:    ldx    12, 11, 0
-    0xA603897D,     // <ENTRY+032>:    mtctr  12
-    0x2004804E,     // <ENTRY+036>:    bctr
+    0xE80C00A0,     // <ENTRY+024>:    ld     0, 9000f-1000b+16(12)
+    0x7D8B002A,     // <ENTRY+028>:    ldx    12, 11, 0
+    0x7D8903A6,     // <ENTRY+032>:    mtctr  12
+    0x4E800420,     // <ENTRY+036>:    bctr
     // 2000:
-    0x280041F8,     // <ENTRY+040>:    std    2, 40(1)
-    0x71FF21F8,     // <ENTRY+044>:    stdu   1, -144(1)
-    0x380061F8,     // <ENTRY+048>:    std    3, 56(1)
-    0x420081F8,     // <ENTRY+052>:    stq    4, 64(1)
-    0x5200C1F8,     // <ENTRY+056>:    stq    6, 80(1)
-    0x620001F9,     // <ENTRY+060>:    stq    8, 96(1)
-    0x700041F9,     // <ENTRY+064>:    std    10, 112(1)
-    0x800081F9,     // <ENTRY+068>:    std    12, 128(1)
-    0x98008CE9,     // <ENTRY+072>:    ld     12, 9000f-1000b+8(12)
-    0xA603897D,     // <ENTRY+076>:    mtctr  12
-    0x2104804E,     // <ENTRY+080>:    bctrl
-    0x700041E9,     // <ENTRY+084>:    ld     10, 112(1)
-    0x800081E9,     // <ENTRY+088>:    ld     12, 128(1)
-    0x90006CE9,     // <ENTRY+092>:    ld     11, 9000f-1000b+0(12)
-    0x00006BF8,     // <ENTRY+096>:    std    3, 0(11)
-    0x781B6B7C,     // <ENTRY+100>:    mr     11, 3
-    0x380061E8,     // <ENTRY+104>:    ld     3, 56(1)
-    0x400081E0,     // <ENTRY+108>:    lq     4, 64(1)
-    0x5000C1E0,     // <ENTRY+112>:    lq     6, 80(1)
-    0x600001E1,     // <ENTRY+116>:    lq     8, 96(1)
-    0x800081E9,     // <ENTRY+120>:    ld     12, 128(1)
-    0x90002138,     // <ENTRY+124>:    addi   1, 1, 144
-    0x100001E8,     // <ENTRY+128>:    ld     0, 16(1)
-    0xA603087C,     // <ENTRY+132>:    mtlr   0
-    0x90FFFF4B,     // <ENTRY+136>:    b      1050b
-    0x00000060,     // <ENTRY+140>:    nop
+    0xF8410028,     // <ENTRY+040>:    std    2, 40(1)
+    0xF821FF71,     // <ENTRY+044>:    stdu   1, -144(1)
+    0xF8610038,     // <ENTRY+048>:    std    3, 56(1)
+    0xF8810042,     // <ENTRY+052>:    stq    4, 64(1)
+    0xF8C10052,     // <ENTRY+056>:    stq    6, 80(1)
+    0xF9010062,     // <ENTRY+060>:    stq    8, 96(1)
+    0xF9410070,     // <ENTRY+064>:    std    10, 112(1)
+    0xF9810080,     // <ENTRY+068>:    std    12, 128(1)
+    0xE98C0098,     // <ENTRY+072>:    ld     12, 9000f-1000b+8(12)
+    0x7D8903A6,     // <ENTRY+076>:    mtctr  12
+    0x4E800421,     // <ENTRY+080>:    bctrl
+    0xE9410070,     // <ENTRY+084>:    ld     10, 112(1)
+    0xE9810080,     // <ENTRY+088>:    ld     12, 128(1)
+    0xE96C0090,     // <ENTRY+092>:    ld     11, 9000f-1000b+0(12)
+    0xF86B0000,     // <ENTRY+096>:    std    3, 0(11)
+    0x7C6B1B78,     // <ENTRY+100>:    mr     11, 3
+    0xE8610038,     // <ENTRY+104>:    ld     3, 56(1)
+    0xE0810040,     // <ENTRY+108>:    lq     4, 64(1)
+    0xE0C10050,     // <ENTRY+112>:    lq     6, 80(1)
+    0xE1010060,     // <ENTRY+116>:    lq     8, 96(1)
+    0xE9810080,     // <ENTRY+120>:    ld     12, 128(1)
+    0x38210090,     // <ENTRY+124>:    addi   1, 1, 144
+    0xE8010010,     // <ENTRY+128>:    ld     0, 16(1)
+    0x7C0803A6,     // <ENTRY+132>:    mtlr   0
+    0x4BFFFF90,     // <ENTRY+136>:    b      1050b
+    0x60000000,     // <ENTRY+140>:    nop
     // 9000:
     0x00000000, 0x00000000,     // <ENTRY+144>:   .quad dispatch
     0x00000000, 0x00000000,     // <ENTRY+152>:   .quad get_current
