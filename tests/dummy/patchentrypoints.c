@@ -168,21 +168,31 @@ static void patch_ppc64le(char *writeEntry, const char *execEntry,
         int stubSize, void *incrementPtr)
 {
 #if defined(__PPC64__)
-    const unsigned char tmpl[] = {
-        // TODO: Fill in this assembly code
-        // The assembly code should increment the integer at (*incrementPtr).
+    const unsigned int tmpl[] = {
+        // NOTE!!!  NOTE!!!  NOTE!!!
+        // This data is endian-reversed from the code you would see in an assembly
+        // listing!
+        // 1000:
+        0x7D2903A6,     //  mtctr 9
+        0xE96C0020,     //  ld    11, 9000f-1000b(12)
+        0xE92B0000,     //  ld    9, 0(11)
+        0x39290001,     //  addi  9, 9, 1
+        0xF92B0000,     //  std   9, 0(11)
+        0x7D2902A6,     //  mfctr 9
+        0x4E800020,     //  blr
+        0x60000000,     //  nop
+        // 9000:
+        0, 0
     };
+
+    static const int offsetAddr = sizeof(tmpl) - 8;
 
     if (stubSize < sizeof(tmpl)) {
         return;
     }
 
     memcpy(writeEntry, tmpl, sizeof(tmpl));
-    // TODO: Patch the address of (*incrementPtr) in the writeEntry buffer.
-    memcpy(writeEntry + 0, &incrementPtr, sizeof(incrementPtr));
-
-    // TODO: Do any other architecture-specific stuff that is required for
-    // self-modifying code (e.g., a jmp for x86, or a cache clear for ARM).
+    memcpy(writeEntry + offsetAddr, &incrementPtr, sizeof(incrementPtr));
 #else
     assert(0); // Should not be calling this
 #endif
