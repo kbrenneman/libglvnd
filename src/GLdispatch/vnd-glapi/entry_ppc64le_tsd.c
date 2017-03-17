@@ -37,11 +37,18 @@
 #include "glvnd/GLdispatchABI.h"
 
 
-// NOTE: This must be a power of two:
+// NOTE: These must be powers of two:
 #define PPC64LE_ENTRY_SIZE 256
+#define PPC64LE_PAGE_ALIGN 65536
+#if ((PPC64LE_ENTRY_SIZE & (PPC64LE_ENTRY_SIZE - 1)) != 0)
+#error PPC64LE_ENTRY_SIZE must be a power of two!
+#endif
+#if ((PPC64LE_PAGE_ALIGN & (PPC64LE_PAGE_ALIGN - 1)) != 0)
+#error PPC64LE_PAGE_ALIGN must be a power of two!
+#endif
 
 __asm__(".section wtext,\"ax\",@progbits\n");
-__asm__(".balign 65536\n"
+__asm__(".balign " U_STRINGIFY(PPC64LE_PAGE_ALIGN) "\n"
        ".globl public_entry_start\n"
        ".hidden public_entry_start\n"
         "public_entry_start:");
@@ -111,7 +118,7 @@ __asm__(".balign 65536\n"
 #include "mapi_tmp.h"
 
 
-__asm__(".balign 65536\n"
+__asm__(".balign " U_STRINGIFY(PPC64LE_PAGE_ALIGN) "\n"
        ".globl public_entry_end\n"
        ".hidden public_entry_end\n"
         "public_entry_end:");
