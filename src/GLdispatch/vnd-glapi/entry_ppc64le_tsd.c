@@ -88,9 +88,6 @@ __asm__(".balign " U_STRINGIFY(PPC64LE_PAGE_ALIGN) "\n"
             "  mtctr  12\n\t"                                   \
             "  bctrl\n\t"                                       \
             "  ld     2, 144+40(1)\n\t"                         \
-            "  addis  11, 2, _glapi_Current@got@ha\n\t"         \
-            "  ld     11, _glapi_Current@got@l(11)\n\t"         \
-            "  std    3, 0(11)\n\t"                             \
             "  mr     11, 3\n\t"                                \
             "  ld     3, 56(1)\n\t"                             \
             "  lq     4, 64(1)\n\t"                             \
@@ -106,7 +103,7 @@ __asm__(".balign " U_STRINGIFY(PPC64LE_PAGE_ALIGN) "\n"
     // {
     //     void **dispatchTable = _glapi_Current[GLAPI_CURRENT_DISPATCH];
     //     if (dispatchTable == NULL) {
-    //         dispatchTable = _glapi_Current[GLAPI_CURRENT_DISPATCH] = _glapi_get_current();
+    //         dispatchTable = _glapi_get_current();
     //     }
     //     jump_to_address(dispatchTable[slot]);
     // }
@@ -138,58 +135,53 @@ static const uint32_t ENTRY_TEMPLATE[] =
     // This data is endian-reversed from the code you would see in an assembly
     // listing!
     // 1000:
-    0x7C0802A6,     // <ENTRY+000>:    mflr   0
-    0xF8010010,     // <ENTRY+004>:    std    0, 16(1)
-    0xE96C0090,     // <ENTRY+008>:    ld     11, 9000f-1000b+0(12)
-    0xE96B0000,     // <ENTRY+012>:    ld     11, 0(11)
-    0x282B0000,     // <ENTRY+016>:    cmpldi 11, 0
-    0x41820014,     // <ENTRY+020>:    beq    2000f
+    0x7C0802A6,    // <ENTRY+000>:    mflr   0
+    0xF8010010,    // <ENTRY+004>:    std    0, 16(1)
+    0xE96C0080,    // <ENTRY+008>:    ld     11, 9000f-1000b+0(12)
+    0xE96B0000,    // <ENTRY+012>:    ld     11, 0(11)
+    0x282B0000,    // <ENTRY+016>:    cmpldi 11, 0
+    0x41820014,    // <ENTRY+020>:    beq    2000f
     // 1050:
-    0xE80C00A0,     // <ENTRY+024>:    ld     0, 9000f-1000b+16(12)
-    0x7D8B002A,     // <ENTRY+028>:    ldx    12, 11, 0
-    0x7D8903A6,     // <ENTRY+032>:    mtctr  12
-    0x4E800420,     // <ENTRY+036>:    bctr
+    0xE80C0090,    // <ENTRY+024>:    ld     0, 9000f-1000b+16(12)
+    0x7D8B002A,    // <ENTRY+028>:    ldx    12, 11, 0
+    0x7D8903A6,    // <ENTRY+032>:    mtctr  12
+    0x4E800420,    // <ENTRY+036>:    bctr
     // 2000:
-    0xF8410028,     // <ENTRY+040>:    std    2, 40(1)
-    0xF821FF71,     // <ENTRY+044>:    stdu   1, -144(1)
-    0xF8610038,     // <ENTRY+048>:    std    3, 56(1)
-    0xF8810042,     // <ENTRY+052>:    stq    4, 64(1)
-    0xF8C10052,     // <ENTRY+056>:    stq    6, 80(1)
-    0xF9010062,     // <ENTRY+060>:    stq    8, 96(1)
-    0xF9410070,     // <ENTRY+064>:    std    10, 112(1)
-    0xF9810080,     // <ENTRY+068>:    std    12, 128(1)
-    0xE98C0098,     // <ENTRY+072>:    ld     12, 9000f-1000b+8(12)
-    0x7D8903A6,     // <ENTRY+076>:    mtctr  12
-    0x4E800421,     // <ENTRY+080>:    bctrl
-    0xE9410070,     // <ENTRY+084>:    ld     10, 112(1)
-    0xE9810080,     // <ENTRY+088>:    ld     12, 128(1)
-    0xE96C0090,     // <ENTRY+092>:    ld     11, 9000f-1000b+0(12)
-    0xF86B0000,     // <ENTRY+096>:    std    3, 0(11)
-    0x7C6B1B78,     // <ENTRY+100>:    mr     11, 3
-    0xE8610038,     // <ENTRY+104>:    ld     3, 56(1)
-    0xE0810040,     // <ENTRY+108>:    lq     4, 64(1)
-    0xE0C10050,     // <ENTRY+112>:    lq     6, 80(1)
-    0xE1010060,     // <ENTRY+116>:    lq     8, 96(1)
-    0xE9810080,     // <ENTRY+120>:    ld     12, 128(1)
-    0x38210090,     // <ENTRY+124>:    addi   1, 1, 144
-    0xE8010010,     // <ENTRY+128>:    ld     0, 16(1)
-    0x7C0803A6,     // <ENTRY+132>:    mtlr   0
-    0x4BFFFF90,     // <ENTRY+136>:    b      1050b
-    0x60000000,     // <ENTRY+140>:    nop
+    0xF8410028,    // <ENTRY+040>:    std    2, 40(1)
+    0xF821FF71,    // <ENTRY+044>:    stdu   1, -144(1)
+    0xF8610038,    // <ENTRY+048>:    std    3, 56(1)
+    0xF8810042,    // <ENTRY+052>:    stq    4, 64(1)
+    0xF8C10052,    // <ENTRY+056>:    stq    6, 80(1)
+    0xF9010062,    // <ENTRY+060>:    stq    8, 96(1)
+    0xF9410070,    // <ENTRY+064>:    std    10, 112(1)
+    0xF9810080,    // <ENTRY+068>:    std    12, 128(1)
+    0xE98C0088,    // <ENTRY+072>:    ld     12, 9000f-1000b+8(12)
+    0x7D8903A6,    // <ENTRY+076>:    mtctr  12
+    0x4E800421,    // <ENTRY+080>:    bctrl
+    0xE9410070,    // <ENTRY+084>:    ld     10, 112(1)
+    0x7C6B1B78,    // <ENTRY+088>:    mr     11, 3
+    0xE8610038,    // <ENTRY+092>:    ld     3, 56(1)
+    0xE0810040,    // <ENTRY+096>:    lq     4, 64(1)
+    0xE0C10050,    // <ENTRY+100>:    lq     6, 80(1)
+    0xE1010060,    // <ENTRY+104>:    lq     8, 96(1)
+    0xE9810080,    // <ENTRY+108>:    ld     12, 128(1)
+    0x38210090,    // <ENTRY+112>:    addi   1, 1, 144
+    0xE8010010,    // <ENTRY+116>:    ld     0, 16(1)
+    0x7C0803A6,    // <ENTRY+120>:    mtlr   0
+    0x4BFFFF9C,    // <ENTRY+124>:    b      1050b
     // 9000:
-    0x00000000, 0x00000000,     // <ENTRY+144>:   .quad dispatch
-    0x00000000, 0x00000000,     // <ENTRY+152>:   .quad get_current
-    0x00000000, 0x00000000      // <ENTRY+160>:   .quad <slot>*8
-
+    0, 0,          // <ENTRY+128>:    .quad _glapi_Current
+    0, 0,          // <ENTRY+136>:    .quad _glapi_get_current
+    0, 0           // <ENTRY+144>:    .quad <slot>*8
 };
 
 // These are the offsets in ENTRY_TEMPLATE of the values that we have to patch.
-static const int TEMPLATE_OFFSET_CURRENT_TABLE = 144;
-static const int TEMPLATE_OFFSET_CURRENT_TABLE_GET = 152;
-static const int TEMPLATE_OFFSET_SLOT = 160;
+static const int TEMPLATE_OFFSET_CURRENT_TABLE = (sizeof(ENTRY_TEMPLATE) - 24);
+static const int TEMPLATE_OFFSET_CURRENT_TABLE_GET = (sizeof(ENTRY_TEMPLATE) - 16);
+static const int TEMPLATE_OFFSET_SLOT = (sizeof(ENTRY_TEMPLATE) - 8);
 
 /*
- * TODO: Fill in these offsets. These are used in entry_generate_default_code
+ * These offsets are used in entry_generate_default_code
  * to patch the dispatch table index and any memory addresses in the generated
  * function.
  *
