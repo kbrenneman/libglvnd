@@ -134,19 +134,15 @@ static void patch_aarch64(char *writeEntry, const char *execEntry,
         int stubSize, void *incrementPtr)
 {
 #if defined(__aarch64__)
-    const uint32_t tmpl[] = {
-        // ldr x0, 1f
-        0x580000a0,
-        // ldr x1, [x0]
-        0xf9400001,
-        // add x1, x1, #1
-        0x91000421,
-        // str x1, [x0]
-        0xf9000001,
-        // br x30
-        0xd61f03c0,
+    const uint8_t tmpl[] = {
+        0xa0, 0x00, 0x00, 0x58, // ldr x0, 1f
+        0x01, 0x00, 0x40, 0xf9, // ldr x1, [x0]
+        0x21, 0x04, 0x00, 0x91, // add x1, x1, #1
+        0x01, 0x00, 0x00, 0xf9, // str x1, [x0]
+        0xc0, 0x03, 0x1f, 0xd6, // br x30
         // 1:
-        0x00000000, 0x00000000,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
     };
 
     static const int offsetAddr = sizeof(tmpl) - 8;

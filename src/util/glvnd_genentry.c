@@ -111,18 +111,15 @@ static const int DISPATCH_FUNC_OFFSET = 12;
 
 #elif defined(USE_PPC64LE_ASM)
 
-static uint32_t STUB_TEMPLATE[] =
+static uint8_t STUB_TEMPLATE[] =
 {
-    // NOTE!!!  NOTE!!!  NOTE!!!
-    // This data is endian-reversed from the code you would see in an assembly
-    // listing!
     // 1000:
-    0xE98C0010,     //   ld 12, 9000f-1000b(12)
-    0x7D8903A6,     //   mtctr 12
-    0x4E800420,     //   bctr
-    0x60000000,     //   nop
+    0x10, 0x00, 0x8C, 0xE9,     //   ld 12, 9000f-1000b(12)
+    0xA6, 0x03, 0x89, 0x7D,     //   mtctr 12
+    0x20, 0x04, 0x80, 0x4E,     //   bctr
+    0x00, 0x00, 0x00, 0x60,     //   nop
     // 9000:
-    0, 0            //   .quad 0
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // .quad 0
 };
 
 static const int DISPATCH_FUNC_OFFSET = sizeof(STUB_TEMPLATE) - 8;

@@ -124,55 +124,52 @@ __asm__(".text\n");
 const int entry_type = __GLDISPATCH_STUB_PPC64LE;
 const int entry_stub_size = PPC64LE_ENTRY_SIZE;
 
-static const uint32_t ENTRY_TEMPLATE[] =
+static const uint8_t ENTRY_TEMPLATE[] =
 {
     // This should be functionally the same code as would be generated from
     // the STUB_ASM_CODE macro, but defined as a buffer.
     // This is used to generate new dispatch stubs. libglvnd will copy this
     // data to the dispatch stub, and then it will patch the slot number and
     // any addresses that it needs to.
-    // NOTE!!!  NOTE!!!  NOTE!!!
-    // This data is endian-reversed from the code you would see in an assembly
-    // listing!
     // 1000:
-    0x7C0802A6,    // <ENTRY+000>:    mflr   0
-    0xF8010010,    // <ENTRY+004>:    std    0, 16(1)
-    0xE96C0080,    // <ENTRY+008>:    ld     11, 9000f-1000b+0(12)
-    0xE96B0000,    // <ENTRY+012>:    ld     11, 0(11)
-    0x282B0000,    // <ENTRY+016>:    cmpldi 11, 0
-    0x41820014,    // <ENTRY+020>:    beq    2000f
+    0xA6, 0x02, 0x08, 0x7C,    // <ENTRY+000>:    mflr   0
+    0x10, 0x00, 0x01, 0xF8,    // <ENTRY+004>:    std    0, 16(1)
+    0x80, 0x00, 0x6C, 0xE9,    // <ENTRY+008>:    ld     11, 9000f-1000b+0(12)
+    0x00, 0x00, 0x6B, 0xE9,    // <ENTRY+012>:    ld     11, 0(11)
+    0x00, 0x00, 0x2B, 0x28,    // <ENTRY+016>:    cmpldi 11, 0
+    0x14, 0x00, 0x82, 0x41,    // <ENTRY+020>:    beq    2000f
     // 1050:
-    0xE80C0090,    // <ENTRY+024>:    ld     0, 9000f-1000b+16(12)
-    0x7D8B002A,    // <ENTRY+028>:    ldx    12, 11, 0
-    0x7D8903A6,    // <ENTRY+032>:    mtctr  12
-    0x4E800420,    // <ENTRY+036>:    bctr
+    0x90, 0x00, 0x0C, 0xE8,    // <ENTRY+024>:    ld     0, 9000f-1000b+16(12)
+    0x2A, 0x00, 0x8B, 0x7D,    // <ENTRY+028>:    ldx    12, 11, 0
+    0xA6, 0x03, 0x89, 0x7D,    // <ENTRY+032>:    mtctr  12
+    0x20, 0x04, 0x80, 0x4E,    // <ENTRY+036>:    bctr
     // 2000:
-    0xF8410028,    // <ENTRY+040>:    std    2, 40(1)
-    0xF821FF71,    // <ENTRY+044>:    stdu   1, -144(1)
-    0xF8610038,    // <ENTRY+048>:    std    3, 56(1)
-    0xF8810042,    // <ENTRY+052>:    stq    4, 64(1)
-    0xF8C10052,    // <ENTRY+056>:    stq    6, 80(1)
-    0xF9010062,    // <ENTRY+060>:    stq    8, 96(1)
-    0xF9410070,    // <ENTRY+064>:    std    10, 112(1)
-    0xF9810080,    // <ENTRY+068>:    std    12, 128(1)
-    0xE98C0088,    // <ENTRY+072>:    ld     12, 9000f-1000b+8(12)
-    0x7D8903A6,    // <ENTRY+076>:    mtctr  12
-    0x4E800421,    // <ENTRY+080>:    bctrl
-    0xE9410070,    // <ENTRY+084>:    ld     10, 112(1)
-    0x7C6B1B78,    // <ENTRY+088>:    mr     11, 3
-    0xE8610038,    // <ENTRY+092>:    ld     3, 56(1)
-    0xE0810040,    // <ENTRY+096>:    lq     4, 64(1)
-    0xE0C10050,    // <ENTRY+100>:    lq     6, 80(1)
-    0xE1010060,    // <ENTRY+104>:    lq     8, 96(1)
-    0xE9810080,    // <ENTRY+108>:    ld     12, 128(1)
-    0x38210090,    // <ENTRY+112>:    addi   1, 1, 144
-    0xE8010010,    // <ENTRY+116>:    ld     0, 16(1)
-    0x7C0803A6,    // <ENTRY+120>:    mtlr   0
-    0x4BFFFF9C,    // <ENTRY+124>:    b      1050b
+    0x28, 0x00, 0x41, 0xF8,    // <ENTRY+040>:    std    2, 40(1)
+    0x71, 0xFF, 0x21, 0xF8,    // <ENTRY+044>:    stdu   1, -144(1)
+    0x38, 0x00, 0x61, 0xF8,    // <ENTRY+048>:    std    3, 56(1)
+    0x42, 0x00, 0x81, 0xF8,    // <ENTRY+052>:    stq    4, 64(1)
+    0x52, 0x00, 0xC1, 0xF8,    // <ENTRY+056>:    stq    6, 80(1)
+    0x62, 0x00, 0x01, 0xF9,    // <ENTRY+060>:    stq    8, 96(1)
+    0x70, 0x00, 0x41, 0xF9,    // <ENTRY+064>:    std    10, 112(1)
+    0x80, 0x00, 0x81, 0xF9,    // <ENTRY+068>:    std    12, 128(1)
+    0x88, 0x00, 0x8C, 0xE9,    // <ENTRY+072>:    ld     12, 9000f-1000b+8(12)
+    0xA6, 0x03, 0x89, 0x7D,    // <ENTRY+076>:    mtctr  12
+    0x21, 0x04, 0x80, 0x4E,    // <ENTRY+080>:    bctrl
+    0x70, 0x00, 0x41, 0xE9,    // <ENTRY+084>:    ld     10, 112(1)
+    0x78, 0x1B, 0x6B, 0x7C,    // <ENTRY+088>:    mr     11, 3
+    0x38, 0x00, 0x61, 0xE8,    // <ENTRY+092>:    ld     3, 56(1)
+    0x40, 0x00, 0x81, 0xE0,    // <ENTRY+096>:    lq     4, 64(1)
+    0x50, 0x00, 0xC1, 0xE0,    // <ENTRY+100>:    lq     6, 80(1)
+    0x60, 0x00, 0x01, 0xE1,    // <ENTRY+104>:    lq     8, 96(1)
+    0x80, 0x00, 0x81, 0xE9,    // <ENTRY+108>:    ld     12, 128(1)
+    0x90, 0x00, 0x21, 0x38,    // <ENTRY+112>:    addi   1, 1, 144
+    0x10, 0x00, 0x01, 0xE8,    // <ENTRY+116>:    ld     0, 16(1)
+    0xA6, 0x03, 0x08, 0x7C,    // <ENTRY+120>:    mtlr   0
+    0x9C, 0xFF, 0xFF, 0x4B,    // <ENTRY+124>:    b      1050b
     // 9000:
-    0, 0,          // <ENTRY+128>:    .quad _glapi_Current
-    0, 0,          // <ENTRY+136>:    .quad _glapi_get_current
-    0, 0           // <ENTRY+144>:    .quad <slot>*8
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // <ENTRY+128>:    .quad _glapi_Current
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // <ENTRY+136>:    .quad _glapi_get_current
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // <ENTRY+144>:    .quad <slot>*8
 };
 
 // These are the offsets in ENTRY_TEMPLATE of the values that we have to patch.

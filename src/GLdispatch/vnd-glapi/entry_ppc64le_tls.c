@@ -102,30 +102,27 @@ extern uint64_t ppc64le_current_tls();
 const int entry_type = __GLDISPATCH_STUB_PPC64LE;
 const int entry_stub_size = PPC64LE_ENTRY_SIZE;
 
-static const uint32_t ENTRY_TEMPLATE[] =
+static const uint8_t ENTRY_TEMPLATE[] =
 {
     // This should be functionally the same code as would be generated from
     // the STUB_ASM_CODE macro, but defined as a buffer.
     // This is used to generate new dispatch stubs. libglvnd will copy this
     // data to the dispatch stub, and then it will patch the slot number and
     // any addresses that it needs to.
-    // NOTE!!!  NOTE!!!  NOTE!!!
-    // This data is endian-reversed from the code you would see in an assembly
-    // listing!
     // 1000:
-    0x7C0802A6,    // <ENTRY+00>:   mflr   0
-    0xF8010010,    // <ENTRY+04>:   std    0, 16(1)
-    0xE96C0028,    // <ENTRY+08>:   ld     11, 9000f-1000b+0(12)
-    0x7D6B6A14,    // <ENTRY+12>:   add    11, 11, 13
-    0xE96B0000,    // <ENTRY+16>:   ld     11, 0(11)
-    0xE80C0030,    // <ENTRY+20>:   ld     0, 9000f-1000b+8(12)
-    0x7D8B002A,    // <ENTRY+24>:   ldx    12, 11, 0
-    0x7D8903A6,    // <ENTRY+28>:   mtctr  12
-    0x4E800420,    // <ENTRY+32>:   bctr
-    0x60000000,    // <ENTRY+36>:   nop
+    0xA6, 0x02, 0x08, 0x7C,    // <ENTRY+00>:   mflr   0
+    0x10, 0x00, 0x01, 0xF8,    // <ENTRY+04>:   std    0, 16(1)
+    0x28, 0x00, 0x6C, 0xE9,    // <ENTRY+08>:   ld     11, 9000f-1000b+0(12)
+    0x14, 0x6A, 0x6B, 0x7D,    // <ENTRY+12>:   add    11, 11, 13
+    0x00, 0x00, 0x6B, 0xE9,    // <ENTRY+16>:   ld     11, 0(11)
+    0x30, 0x00, 0x0C, 0xE8,    // <ENTRY+20>:   ld     0, 9000f-1000b+8(12)
+    0x2A, 0x00, 0x8B, 0x7D,    // <ENTRY+24>:   ldx    12, 11, 0
+    0xA6, 0x03, 0x89, 0x7D,    // <ENTRY+28>:   mtctr  12
+    0x20, 0x04, 0x80, 0x4E,    // <ENTRY+32>:   bctr
+    0x00, 0x00, 0x00, 0x60,    // <ENTRY+36>:   nop
     // 9000:
-    0, 0,          // <ENTRY+40>:    .quad _glapi_Current
-    0, 0           // <ENTRY+48>:    .quad <slot>*8
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // <ENTRY+40>:    .quad _glapi_Current
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // <ENTRY+48>:    .quad <slot>*8
 };
 
 /*
