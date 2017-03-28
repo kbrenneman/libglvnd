@@ -183,7 +183,6 @@ static void patch_ppc64le(char *writeEntry, const char *execEntry,
         0x60000000,     //  nop
         // 9000:
         0, 0
-        // This assembly code should increment the integer at (*incrementPtr).
     };
 
     static const int offsetAddr = sizeof(tmpl) - 8;
@@ -194,9 +193,6 @@ static void patch_ppc64le(char *writeEntry, const char *execEntry,
 
     memcpy(writeEntry, tmpl, sizeof(tmpl));
     memcpy(writeEntry + offsetAddr, &incrementPtr, sizeof(incrementPtr));
-
-    // TODO: Do any other architecture-specific stuff that is required for
-    // self-modifying code (e.g., a jmp for x86, or a cache clear for ARM).
 #else
     assert(0); // Should not be calling this
 #endif

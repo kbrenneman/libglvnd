@@ -198,17 +198,8 @@ void entry_generate_default_code(char *entry, int slot)
     char *writeEntry = u_execmem_get_writable(entry);
     memcpy(writeEntry, ENTRY_TEMPLATE, sizeof(ENTRY_TEMPLATE));
 
-    // TODO: Patch the dispatch table slot and the addresses of the
-    // _glapi_Current variable and _glapi_get_current function.
-    // Note that (entry) is the executable pointer, and (writeEntry) is the
-    // writable pointer, which may or may not be the same. So, if the stub
-    // needs to use IP-relative addresses, then calculate those addresses based
-    // on (entry).
     *((uint32_t *) (writeEntry + TEMPLATE_OFFSET_SLOT)) = slot * sizeof(mapi_func);
     *((uintptr_t *) (writeEntry + TEMPLATE_OFFSET_CURRENT_TABLE)) = (uintptr_t) _glapi_Current;
     *((uintptr_t *) (writeEntry + TEMPLATE_OFFSET_CURRENT_TABLE_GET)) = (uintptr_t) _glapi_get_current;
-
-    // TODO: Do any cache clears or anything else that is necessary on PPC64LE
-    // to make self-modifying code work.
 }
 

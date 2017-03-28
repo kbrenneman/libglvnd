@@ -153,8 +153,5 @@ void entry_generate_default_code(char *entry, int slot)
 
     *((uint64_t *) (writeEntry + TEMPLATE_OFFSET_TLS_ADDR)) = (uintptr_t) ppc64le_current_tls();
     *((uint64_t *) (writeEntry + TEMPLATE_OFFSET_SLOT)) = slot * sizeof(mapi_func);
-
-    // TODO: Do any cache clears or anything else that is necessary on PPC64LE
-    // to make self-modifying code work.
 }
 

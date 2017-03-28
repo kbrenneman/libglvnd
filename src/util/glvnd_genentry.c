@@ -123,9 +123,6 @@ static uint32_t STUB_TEMPLATE[] =
     0x60000000,     //   nop
     // 9000:
     0, 0            //   .quad 0
-    // TODO: Fill in assembly code.
-    // This function should just jump to an immediate address. See the x86
-    // and x86-64 versions above for the simplest examples.
 };
 
 static const int DISPATCH_FUNC_OFFSET = sizeof(STUB_TEMPLATE) - 8;
