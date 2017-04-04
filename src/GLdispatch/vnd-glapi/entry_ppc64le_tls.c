@@ -55,22 +55,22 @@ __asm__(".balign " U_STRINGIFY(PPC64LE_PAGE_ALIGN) "\n"
         "public_entry_start:");
 
 #define STUB_ASM_ENTRY(func)        \
-   ".globl " func "\n"              \
-   ".type " func ", @function\n"    \
-   ".balign " U_STRINGIFY(PPC64LE_ENTRY_SIZE) "\n"                   \
-   func ":"
+            ".globl " func "\n"                                 \
+            ".type " func ", @function\n"                       \
+            ".balign " U_STRINGIFY(PPC64LE_ENTRY_SIZE) "\n"     \
+            func ":\n\t"                                        \
+            "  addis  2, 12, .TOC.-" func "@ha\n\t"             \
+            "  addi   2, 2, .TOC.-" func "@l\n\t"               \
+            "  .localentry  " func ", .-" func "\n\t"
 
-#define STUB_ASM_CODE(slot)                                         \
-            "1000:\n\t"                                                 \
-            "  addis  2, 12, .TOC.-1000b@ha\n\t"                        \
-            "  addi   2, 2, .TOC.-1000b@l\n\t"                          \
-            "  addis  11, 2, _glapi_tls_Current@got@tprel@ha\n\t"       \
-            "  ld     11, _glapi_tls_Current@got@tprel@l(11)\n\t"       \
-            "  add    11, 11,_glapi_tls_Current@tls\n\t"                \
-            "  ld     11, 0(11)\n\t"                                    \
-            "  ld     12, " slot "*8(11)\n\t"                           \
-            "  mtctr  12\n\t"                                           \
-            "  bctr\n"                                                  \
+#define STUB_ASM_CODE(slot)                                     \
+    "  addis  11, 2, _glapi_tls_Current@got@tprel@ha\n\t"       \
+    "  ld     11, _glapi_tls_Current@got@tprel@l(11)\n\t"       \
+    "  add    11, 11,_glapi_tls_Current@tls\n\t"                \
+    "  ld     11, 0(11)\n\t"                                    \
+    "  ld     12, " slot "*8(11)\n\t"                           \
+    "  mtctr  12\n\t"                                           \
+    "  bctr\n"                                                  \
     // Conceptually, this is:
     // {
     //     void **dispatchTable = _glapi_tls_Current;
