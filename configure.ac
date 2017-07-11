@@ -15,7 +15,7 @@ AX_CHECK_ENABLE_DEBUG(no, DEBUG)
 
 AC_USE_SYSTEM_EXTENSIONS
 
-AM_INIT_AUTOMAKE([1.11 foreign silent-rules])
+AM_INIT_AUTOMAKE([1.11 foreign silent-rules subdir-objects])
 AM_SILENT_RULES([yes])
 
 dnl Checks for programs.
@@ -293,19 +293,6 @@ AX_CHECK_LINK_FLAG([-Xlinker --no-undefined],
 dnl default CFLAGS
 CFLAGS="$CFLAGS -Wall -Werror -include config.h -fvisibility=hidden $DEFINES"
 
-AC_CONFIG_FILES([Makefile
-                 libglvnd.pc
-                 include/Makefile
-                 src/Makefile
-                 src/GL/Makefile
-                 src/OpenGL/Makefile
-                 src/GLESv1/Makefile
-                 src/GLESv2/Makefile
-                 src/GLX/Makefile
-                 src/EGL/Makefile
-                 src/GLdispatch/Makefile
-                 src/GLdispatch/vnd-glapi/Makefile
-                 src/util/Makefile
-                 tests/Makefile
-                 tests/dummy/Makefile])
+AC_CONFIG_FILES([Makefile libglvnd.pc])
+
 AC_OUTPUT

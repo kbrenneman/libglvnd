@@ -25,26 +25,22 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
-noinst_HEADERS = \
-	libglxabipriv.h \
-	libglxcurrent.h \
-	libglxmapping.h \
-	libglxgl.h \
-	libglxthread.h \
-	libglxproto.h
+noinst_HEADERS += \
+	src/GLX/libglxabipriv.h \
+	src/GLX/libglxcurrent.h \
+	src/GLX/libglxmapping.h \
+	src/GLX/libglxgl.h \
+	src/GLX/libglxthread.h \
+	src/GLX/libglxproto.h
 
-lib_LTLIBRARIES = libGLX.la
-
-UTIL_DIR = ../util
-UTHASH_DIR = ../util/uthash/src
-GL_DISPATCH_DIR = ../GLdispatch
+lib_LTLIBRARIES += libGLX.la
 
 # Warning settings
 # Include paths
-libGLX_la_CFLAGS =  -I$(srcdir)/$(UTHASH_DIR)
-libGLX_la_CFLAGS += -I$(srcdir)/$(UTIL_DIR)
-libGLX_la_CFLAGS += -I$(srcdir)/$(GL_DISPATCH_DIR)
-libGLX_la_CFLAGS += -I$(top_srcdir)/include
+libGLX_la_CFLAGS =  -I$(top_srcdir)/include
+libGLX_la_CFLAGS += -I$(top_srcdir)/src/util
+libGLX_la_CFLAGS += -I$(top_srcdir)/src/util/uthash/src
+libGLX_la_CFLAGS += -I$(top_srcdir)/src/GLdispatch
 libGLX_la_CFLAGS += $(GLPROTO_CFLAGS)
 
 # Required library flags
@@ -54,18 +50,18 @@ libGLX_la_CFLAGS += $(PTHREAD_CFLAGS)
 libGLX_la_LIBADD = -ldl
 libGLX_la_LIBADD += $(X11_LIBS)
 libGLX_la_LIBADD += $(XEXT_LIBS)
-libGLX_la_LIBADD += $(GL_DISPATCH_DIR)/libGLdispatch.la
-libGLX_la_LIBADD += $(UTIL_DIR)/libtrace.la
-libGLX_la_LIBADD += $(UTIL_DIR)/libglvnd_pthread.la
-libGLX_la_LIBADD += $(UTIL_DIR)/libglvnd_genentry.la
-libGLX_la_LIBADD += $(UTIL_DIR)/libutils_misc.la
-libGLX_la_LIBADD += $(UTIL_DIR)/libapp_error_check.la
-libGLX_la_LIBADD += $(UTIL_DIR)/libwinsys_dispatch.la
+libGLX_la_LIBADD += libGLdispatch.la
 
 libGLX_la_LDFLAGS = -shared -Wl,-Bsymbolic -version-info 0 $(LINKER_FLAG_NO_UNDEFINED)
 
 libGLX_la_SOURCES = \
-	libglx.c \
-	libglxmapping.c \
-	libglxproto.c
+	src/GLX/libglx.c \
+	src/GLX/libglxmapping.c \
+	src/GLX/libglxproto.c \
+	src/util/trace.c \
+	src/util/glvnd_pthread.c \
+	src/util/glvnd_genentry.c \
+	src/util/utils_misc.c \
+	src/util/app_error_check.c \
+	src/util/winsys_dispatch.c
 

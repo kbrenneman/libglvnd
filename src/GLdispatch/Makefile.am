@@ -25,31 +25,31 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
-noinst_HEADERS = \
-	GLdispatch.h \
-	GLdispatchPrivate.h
+noinst_HEADERS += \
+	src/GLdispatch/GLdispatch.h \
+	src/GLdispatch/GLdispatchPrivate.h
 
-lib_LTLIBRARIES = libGLdispatch.la
+lib_LTLIBRARIES += libGLdispatch.la
 
-SUBDIRS = vnd-glapi
+include src/GLdispatch/vnd-glapi/Makefile.am
 
-libGLdispatch_la_CFLAGS = -I$(top_srcdir)/src/util
-libGLdispatch_la_CFLAGS += -I$(srcdir)/vnd-glapi
-libGLdispatch_la_CFLAGS += -I$(top_srcdir)/include
+libGLdispatch_la_CFLAGS = -I$(top_srcdir)/include
+libGLdispatch_la_CFLAGS += -I$(top_srcdir)/src/util
+libGLdispatch_la_CFLAGS += -I$(top_srcdir)/src/GLdispatch/vnd-glapi
 
 libGLdispatch_la_LDFLAGS = -shared -version-info 0 $(LINKER_FLAG_NO_UNDEFINED)
 
-EXTRA_libGLdispatch_la_DEPENDENCIES = $(top_srcdir)/src/GLdispatch/export_list.sym
+EXTRA_libGLdispatch_la_DEPENDENCIES = src/GLdispatch/export_list.sym
 libGLdispatch_la_LDFLAGS += \
 	-export-symbols $(top_srcdir)/src/GLdispatch/export_list.sym
 
 libGLdispatch_la_SOURCES = \
-	GLdispatch.c
+	src/GLdispatch/GLdispatch.c \
+	src/util/trace.c \
+	src/util/glvnd_pthread.c \
+	src/util/app_error_check.c
 
-libGLdispatch_la_LIBADD = vnd-glapi/libglapi.la
-libGLdispatch_la_LIBADD += ../util/libtrace.la
-libGLdispatch_la_LIBADD += ../util/libglvnd_pthread.la
-libGLdispatch_la_LIBADD += ../util/libapp_error_check.la
+libGLdispatch_la_LIBADD = libglapi.la
 libGLdispatch_la_LIBADD += -ldl
 
-EXTRA_DIST = export_list.sym
+EXTRA_DIST += src/GLdispatch/export_list.sym

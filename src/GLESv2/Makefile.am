@@ -25,7 +25,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
-lib_LTLIBRARIES = libGLESv2.la
+lib_LTLIBRARIES += libGLESv2.la
 
 EXTRA_libGLESv2_la_DEPENDENCIES = $(builddir)/g_glesv2_exports.sym
 
@@ -36,15 +36,11 @@ libGLESv2_la_LDFLAGS = -shared \
 	-version-info 2
 
 libGLESv2_la_LIBADD = \
-	../OpenGL/libopengl_main.la \
-	../GLdispatch/libGLdispatch.la \
-	../GLdispatch/vnd-glapi/libglapi_glesv2.la \
-	../util/libutils_misc.la
+	libopengl_main.la \
+	libGLdispatch.la \
+	libglapi_glesv2.la
 
-include $(top_srcdir)/src/generate/glvnd_gen.mk
-
-BUILT_SOURCES = $(builddir)/g_glesv2_exports.sym
-CLEANFILES = $(BUILT_SOURCES)
+BUILT_SOURCES += $(builddir)/g_glesv2_exports.sym
 g_glesv2_exports.sym : $(glapi_gen_libopengl_exports_deps)
 	$(call glapi_gen_libopengl_exports, glesv2)
 

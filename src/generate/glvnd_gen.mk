@@ -1,4 +1,12 @@
 
+EXTRA_DIST += src/generate/eglFunctionList.py
+EXTRA_DIST += src/generate/genCommon.py
+EXTRA_DIST += src/generate/gen_egl_dispatch.py
+EXTRA_DIST += src/generate/gen_gldispatch_mapi.py
+EXTRA_DIST += src/generate/gen_libgl_glxstubs.py
+EXTRA_DIST += src/generate/gen_libOpenGL_exports.py
+EXTRA_DIST += src/generate/xml
+
 glapi_gen_gl_xml := \
 	$(top_srcdir)/src/generate/xml/gl.xml \
 	$(top_srcdir)/src/generate/xml/gl_other.xml

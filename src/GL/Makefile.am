@@ -25,46 +25,27 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
-lib_LTLIBRARIES = libGL.la
+lib_LTLIBRARIES += libGL.la
 
-TOP = $(top_srcdir)
-MAPI = $(top_srcdir)/$(MAPI_PREFIX)
-GLAPI = $(MAPI)/glapi
+libGL_la_SOURCES =
+libGL_la_SOURCES += src/GL/libgl.c
+libGL_la_SOURCES += src/util/utils_misc.c
+libGL_la_SOURCES += g_libglglxwrapper.c
 
-noinst_HEADERS =        \
-	g_glapi_mapi_gl_tmp.h
-
-include $(top_srcdir)/src/GLdispatch/vnd-glapi/entry_files.mk
-
-libGL_la_SOURCES =      \
-	libgl.c             \
-	g_libglglxwrapper.c
-
-BUILT_SOURCES = g_glapi_mapi_gl_tmp.h g_libglglxwrapper.c
-CLEANFILES = $(BUILT_SOURCES)
-
-include $(top_srcdir)/src/generate/glvnd_gen.mk
-g_glapi_mapi_gl_tmp.h : $(glapi_gen_mapi_deps)
-	$(call glapi_gen_mapi, gl)
+BUILT_SOURCES += g_libglglxwrapper.c
 
 g_libglglxwrapper.c : $(glapi_gen_libglglxstubs_deps)
 	$(call glapi_gen_libglglxstubs)
 
 libGL_la_CFLAGS = \
-	-I$(top_srcdir)/include
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/src/util \
+	-I$(top_srcdir)/src/GLdispatch/vnd-glapi \
+	-I$(top_srcdir)/src/GLX \
+	-I$(top_srcdir)/src/GLdispatch
 
 libGL_la_LDFLAGS = -shared -version-info 1 $(LINKER_FLAG_NO_UNDEFINED)
 
-AM_CPPFLAGS = \
-	-I$(TOP)/src/GLdispatch/vnd-glapi \
-	-I$(TOP)/src/GLX \
-	-I$(TOP)/src/GLdispatch \
-	-I$(TOP)/src/util \
-	-DMAPI_ABI_HEADER=\"$(builddir)/g_glapi_mapi_gl_tmp.h\" \
-	-DSTATIC_DISPATCH_ONLY
-
-libGL_la_LIBADD  = ../GLX/libGLX.la
-libGL_la_LIBADD += ../GLdispatch/libGLdispatch.la
-libGL_la_LIBADD += ../GLdispatch/vnd-glapi/libglapi_gl.la
-libGL_la_LIBADD += ../util/libutils_misc.la
-libGL_la_LIBADD += -ldl
+libGL_la_LIBADD  = libGLX.la
+libGL_la_LIBADD += libGLdispatch.la
+libGL_la_LIBADD += libglapi_gl.la

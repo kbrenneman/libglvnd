@@ -25,12 +25,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
-SUBDIRS = \
-	dummy
+include tests/dummy/Makefile.am
 
-noinst_HEADERS = \
-	test_utils.h \
-	egl_test_utils.h
+noinst_HEADERS += \
+	tests/test_utils.h \
+	tests/egl_test_utils.h
 
 TESTS_ENVIRONMENT = \
 	TOP_SRCDIR=$(top_srcdir) \
@@ -40,35 +39,31 @@ TESTS_ENVIRONMENT = \
 TESTS =
 check_PROGRAMS =
 
-EXTRA_DIST = $(TESTS) \
-	glxenv.sh \
-	eglenv.sh \
-	json
+EXTRA_DIST += $(TESTS) \
+	tests/glxenv.sh \
+	tests/eglenv.sh \
+	tests/json
 
 # The *_oldlink variant tests that linking against legacy libGL.so works
 
 # Disable annoying "unused" errors
-AM_CFLAGS =                                  \
-	-Wno-error=unused-variable               \
-	-Wno-error=unused-label                  \
-	-I$(top_srcdir)/include                  \
-	-I$(top_srcdir)/src/util                 \
-	-I$(top_srcdir)/src/util/glvnd_pthread
+TESTS_COMMON_CFLAGS = \
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/src/util
 
 
-TESTS += testgldispatch_static.sh
-TESTS += testgldispatch_generated.sh
-TESTS += testgldispatch_patched.sh
+TESTS += tests/testgldispatch_static.sh
+TESTS += tests/testgldispatch_generated.sh
+TESTS += tests/testgldispatch_patched.sh
 check_PROGRAMS += testgldispatch
 testgldispatch_SOURCES = \
-	testgldispatch.c
-testgldispatch_CFLAGS = \
-	-I$(top_srcdir)/include \
+	tests/testgldispatch.c \
+	src/util/utils_misc.c \
+	tests/dummy/patchentrypoints.c
+testgldispatch_CFLAGS = $(TESTS_COMMON_CFLAGS) \
 	-I$(top_srcdir)/src/GLdispatch
-testgldispatch_LDADD = $(top_builddir)/src/GLdispatch/libGLdispatch.la
-testgldispatch_LDADD += $(top_builddir)/src/OpenGL/libOpenGL.la
-testgldispatch_LDADD += dummy/libpatchentrypoints.la
-testgldispatch_LDADD += $(top_builddir)/src/util/libutils_misc.la
+testgldispatch_LDADD = libGLdispatch.la
+testgldispatch_LDADD += libOpenGL.la
 
 # Start of GLX-specific tests.
 # Notes that the TESTS_GLX variable must be defined outside the conditional, so
@@ -76,69 +71,75 @@ testgldispatch_LDADD += $(top_builddir)/src/util/libutils_misc.la
 # the scripts would be missing when you run "make dist" or "make distcheck".
 
 TESTS_GLX =
-TESTS_GLX += testglxmcbasic.sh
-TESTS_GLX += testglxmcloop.sh
-TESTS_GLX += testglxmcthreads.sh
-TESTS_GLX += testglxmclate.sh
-TESTS_GLX += testglxmcoldlink.sh
-TESTS_GLX += testglxgetprocaddress.sh
-TESTS_GLX += testglxgetprocaddress_genentry.sh
-TESTS_GLX += testglxgetclientstr.sh
-TESTS_GLX += testglxqueryversion.sh
-TESTS_GLX += testpatchentrypoints.sh
+TESTS_GLX += tests/testglxmcbasic.sh
+TESTS_GLX += tests/testglxmcloop.sh
+TESTS_GLX += tests/testglxmcthreads.sh
+TESTS_GLX += tests/testglxmclate.sh
+TESTS_GLX += tests/testglxmcoldlink.sh
+TESTS_GLX += tests/testglxgetprocaddress.sh
+TESTS_GLX += tests/testglxgetprocaddress_genentry.sh
+TESTS_GLX += tests/testglxgetclientstr.sh
+TESTS_GLX += tests/testglxqueryversion.sh
+TESTS_GLX += tests/testpatchentrypoints.sh
 
 if ENABLE_GLX
 
 TESTS += $(TESTS_GLX)
 
 TESTGLXMAKECURRENT_SOURCES_COMMON = \
-	testglxmakecurrent.c \
-	test_utils.c
+	tests/testglxmakecurrent.c \
+	tests/test_utils.c \
+	src/util/glvnd_pthread.c \
+	src/util/trace.c
 
 check_PROGRAMS += testglxmakecurrent
 testglxmakecurrent_SOURCES = $(TESTGLXMAKECURRENT_SOURCES_COMMON)
 testglxmakecurrent_LDADD = -lX11 -ldl
-testglxmakecurrent_LDADD += $(top_builddir)/src/GLX/libGLX.la
-testglxmakecurrent_LDADD += $(top_builddir)/src/OpenGL/libOpenGL.la
-testglxmakecurrent_LDADD += $(top_builddir)/src/util/libglvnd_pthread.la
-testglxmakecurrent_LDADD += $(top_builddir)/src/util/libtrace.la
+testglxmakecurrent_LDADD += libGLX.la
+testglxmakecurrent_LDADD += libOpenGL.la
+testglxmakecurrent_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 
 check_PROGRAMS += testglxmakecurrent_oldlink
 testglxmakecurrent_oldlink_SOURCES = $(TESTGLXMAKECURRENT_SOURCES_COMMON)
 testglxmakecurrent_oldlink_LDADD = -lX11 -ldl
-testglxmakecurrent_oldlink_LDADD += $(top_builddir)/src/GL/libGL.la
-testglxmakecurrent_oldlink_LDADD += $(top_builddir)/src/util/libglvnd_pthread.la
-testglxmakecurrent_oldlink_LDADD += $(top_builddir)/src/util/libtrace.la
+testglxmakecurrent_oldlink_LDADD += libGL.la
+testglxmakecurrent_oldlink_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 
 check_PROGRAMS += testglxgetprocaddress
+testglxgetprocaddress_SOURCES = tests/testglxgetprocaddress.c
+testglxgetprocaddress_CFLAGS = $(TESTS_COMMON_CFLAGS)
 testglxgetprocaddress_LDADD = -lX11
-testglxgetprocaddress_LDADD += $(top_builddir)/src/GLX/libGLX.la
+testglxgetprocaddress_LDADD += libGLX.la
 
 
 check_PROGRAMS += testglxgetclientstr
+testglxgetclientstr_SOURCES = tests/testglxgetclientstr.c src/util/trace.c
 testglxgetclientstr_LDADD = -lX11
-testglxgetclientstr_LDADD += $(top_builddir)/src/GLX/libGLX.la
-testglxgetclientstr_LDADD += $(top_builddir)/src/OpenGL/libOpenGL.la
-testglxgetclientstr_LDADD += $(top_builddir)/src/util/libtrace.la
+testglxgetclientstr_LDADD += libGLX.la
+testglxgetclientstr_LDADD += libOpenGL.la
+testglxgetclientstr_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 
 check_PROGRAMS += testglxqueryversion
+testglxqueryversion_SOURCES = tests/testglxqueryversion.c
 testglxqueryversion_LDADD = -lX11
-testglxqueryversion_LDADD += $(top_builddir)/src/GLX/libGLX.la
-testglxqueryversion_LDADD += $(top_builddir)/src/OpenGL/libOpenGL.la
+testglxqueryversion_LDADD += libGLX.la
+testglxqueryversion_LDADD += libOpenGL.la
+testglxqueryversion_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 
 check_PROGRAMS += testpatchentrypoints
 testpatchentrypoints_SOURCES = \
-	testpatchentrypoints.c \
-	test_utils.c
+	tests/testpatchentrypoints.c \
+	tests/test_utils.c \
+	src/util/trace.c
 
 testpatchentrypoints_LDADD = -lX11 -ldl
-testpatchentrypoints_LDADD += $(top_builddir)/src/GLX/libGLX.la
-testpatchentrypoints_LDADD += $(top_builddir)/src/OpenGL/libOpenGL.la
-testpatchentrypoints_LDADD += $(top_builddir)/src/util/libtrace.la
+testpatchentrypoints_LDADD += libGLX.la
+testpatchentrypoints_LDADD += libOpenGL.la
+testpatchentrypoints_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 endif # ENABLE_GLX
 
@@ -146,12 +147,12 @@ endif # ENABLE_GLX
 # Start of EGL-specific tests.
 
 TESTS_EGL =
-TESTS_EGL += testegldisplay.sh
-TESTS_EGL += testegldevice.sh
-TESTS_EGL += testeglgetprocaddress.sh
-TESTS_EGL += testeglmakecurrent.sh
-TESTS_EGL += testeglerror.sh
-TESTS_EGL += testegldebug.sh
+TESTS_EGL += tests/testegldisplay.sh
+TESTS_EGL += tests/testegldevice.sh
+TESTS_EGL += tests/testeglgetprocaddress.sh
+TESTS_EGL += tests/testeglmakecurrent.sh
+TESTS_EGL += tests/testeglerror.sh
+TESTS_EGL += tests/testegldebug.sh
 
 if ENABLE_EGL
 
@@ -159,42 +160,48 @@ TESTS += $(TESTS_EGL)
 
 check_PROGRAMS += testegldisplay
 testegldisplay_SOURCES = \
-	testegldisplay.c \
-	egl_test_utils.c
-testegldisplay_LDADD = $(top_builddir)/src/EGL/libEGL.la
+	tests/testegldisplay.c \
+	tests/egl_test_utils.c
+testegldisplay_LDADD = libEGL.la
+testegldisplay_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 check_PROGRAMS += testegldevice
 testegldevice_SOURCES = \
-	testegldevice.c \
-	egl_test_utils.c
-testegldevice_LDADD = $(top_builddir)/src/EGL/libEGL.la
+	tests/testegldevice.c \
+	tests/egl_test_utils.c
+testegldevice_LDADD = libEGL.la
+testegldevice_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 check_PROGRAMS += testeglgetprocaddress
 testeglgetprocaddress_SOURCES = \
-	testeglgetprocaddress.c \
-	egl_test_utils.c
-testeglgetprocaddress_LDADD = $(top_builddir)/src/EGL/libEGL.la
+	tests/testeglgetprocaddress.c \
+	tests/egl_test_utils.c
+testeglgetprocaddress_LDADD = libEGL.la
+testeglgetprocaddress_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 check_PROGRAMS += testeglmakecurrent
 testeglmakecurrent_SOURCES = \
-	testeglmakecurrent.c \
-	egl_test_utils.c
-testeglmakecurrent_LDADD = $(top_builddir)/src/EGL/libEGL.la
-testeglmakecurrent_LDADD += $(top_builddir)/src/OpenGL/libOpenGL.la
+	tests/testeglmakecurrent.c \
+	tests/egl_test_utils.c
+testeglmakecurrent_LDADD = libEGL.la
+testeglmakecurrent_LDADD += libOpenGL.la
+testeglmakecurrent_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 check_PROGRAMS += testeglerror
 testeglerror_SOURCES = \
-	testeglerror.c \
-	egl_test_utils.c
-testeglerror_LDADD = $(top_builddir)/src/EGL/libEGL.la
-testeglerror_LDADD += $(top_builddir)/src/OpenGL/libOpenGL.la
+	tests/testeglerror.c \
+	tests/egl_test_utils.c
+testeglerror_LDADD = libEGL.la
+testeglerror_LDADD += libOpenGL.la
+testeglerror_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 
 check_PROGRAMS += testegldebug
 testegldebug_SOURCES = \
-	testegldebug.c \
-	egl_test_utils.c
-testegldebug_LDADD = $(top_builddir)/src/EGL/libEGL.la
+	tests/testegldebug.c \
+	tests/egl_test_utils.c
+testegldebug_LDADD = libEGL.la
+testegldebug_CFLAGS = $(TESTS_COMMON_CFLAGS)
 
 endif # ENABLE_EGL
 

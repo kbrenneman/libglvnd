@@ -25,26 +25,22 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
-lib_LTLIBRARIES = libGLESv1_CM.la
+lib_LTLIBRARIES += libGLESv1_CM.la
 
 EXTRA_libGLESv1_CM_la_DEPENDENCIES = $(builddir)/g_glesv1_exports.sym
 
-libGLESv1_CM_la_SOURCES = 
+libGLESv1_CM_la_SOURCES =
 libGLESv1_CM_la_LDFLAGS = -shared \
 	$(LINKER_FLAG_NO_UNDEFINED) \
 	-export-symbols $(builddir)/g_glesv1_exports.sym \
 	-version-info 1
 
 libGLESv1_CM_la_LIBADD = \
-	../OpenGL/libopengl_main.la \
-	../GLdispatch/libGLdispatch.la \
-	../GLdispatch/vnd-glapi/libglapi_glesv1.la \
-	../util/libutils_misc.la
+	libopengl_main.la \
+	libGLdispatch.la \
+	libglapi_glesv1.la
 
-include $(top_srcdir)/src/generate/glvnd_gen.mk
-
-BUILT_SOURCES = $(builddir)/g_glesv1_exports.sym
-CLEANFILES = $(BUILT_SOURCES)
+BUILT_SOURCES += $(builddir)/g_glesv1_exports.sym
 g_glesv1_exports.sym : $(glapi_gen_libopengl_exports_deps)
 	$(call glapi_gen_libopengl_exports, glesv1)
 

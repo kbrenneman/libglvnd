@@ -1,17 +1,7 @@
-noinst_HEADERS = \
-	patchentrypoints.h \
-	GLX_dummy.h \
-	EGL_dummy.h
-
-check_LTLIBRARIES =
- 
-check_LTLIBRARIES += libpatchentrypoints.la
-libpatchentrypoints_la_CFLAGS = \
-	-I$(top_srcdir)/src/GLdispatch \
-	-I$(top_srcdir)/src/util       \
-	-I$(top_srcdir)/include
-libpatchentrypoints_la_SOURCES = \
-	patchentrypoints.c
+noinst_HEADERS += \
+	tests/dummy/patchentrypoints.h \
+	tests/dummy/GLX_dummy.h \
+	tests/dummy/EGL_dummy.h
 
 if ENABLE_GLX
 check_LTLIBRARIES += libGLX_dummy.la
@@ -20,11 +10,11 @@ libGLX_dummy_la_CFLAGS = \
 	-I$(top_srcdir)/src/GLdispatch \
 	-I$(top_srcdir)/src/util       \
 	-I$(top_srcdir)/include
-libGLX_dummy_la_SOURCES = \
-	GLX_dummy.c
-libGLX_dummy_la_LIBADD = $(top_builddir)/src/util/libtrace.la
-libGLX_dummy_la_LIBADD += $(top_builddir)/src/util/libutils_misc.la
-libGLX_dummy_la_LIBADD += libpatchentrypoints.la
+libGLX_dummy_la_SOURCES =
+libGLX_dummy_la_SOURCES += tests/dummy/GLX_dummy.c
+libGLX_dummy_la_SOURCES += src/util/trace.c
+libGLX_dummy_la_SOURCES += src/util/utils_misc.c
+libGLX_dummy_la_SOURCES += tests/dummy/patchentrypoints.c
 # The -rpath option forces libtool to create a shared library instead of just a
 # static library.
 libGLX_dummy_la_LDFLAGS = \
@@ -36,9 +26,9 @@ if ENABLE_EGL
 EGL_DUMMY_CFLAGS_COMMON = \
 	-I$(top_srcdir)/src/util \
 	-I$(top_srcdir)/include
-EGL_DUMMY_SOURCES_COMMON = EGL_dummy.c
-EGL_DUMMY_LIBADD_COMMON = \
-	$(top_builddir)/src/util/libglvnd_pthread.la
+EGL_DUMMY_SOURCES_COMMON =
+EGL_DUMMY_SOURCES_COMMON += tests/dummy/EGL_dummy.c
+EGL_DUMMY_SOURCES_COMMON += src/util/glvnd_pthread.c
 EGL_DUMMY_LDFLAGS_COMMON = \
 	-shared \
 	-rpath /nowhere

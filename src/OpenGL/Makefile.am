@@ -25,18 +25,17 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
-noinst_LTLIBRARIES = libopengl_main.la
-libopengl_main_la_SOURCES = libopengl.c
+EXTRA_LTLIBRARIES += libopengl_main.la
+libopengl_main_la_SOURCES = src/OpenGL/libopengl.c
 libopengl_main_la_CFLAGS = \
 	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/src/GLdispatch/vnd-glapi \
-	-I$(top_srcdir)/src/GLdispatch/ \
-	-I$(top_srcdir)/src/util
+	-I$(top_srcdir)/src/GLdispatch/
 
 
-lib_LTLIBRARIES = libOpenGL.la
+lib_LTLIBRARIES += libOpenGL.la
 
-libOpenGL_la_SOURCES = 
+libOpenGL_la_SOURCES =
 EXTRA_libOpenGL_la_DEPENDENCIES = $(builddir)/g_opengl_exports.sym
 libOpenGL_la_LDFLAGS = -shared \
 	$(LINKER_FLAG_NO_UNDEFINED) \
@@ -45,14 +44,10 @@ libOpenGL_la_LDFLAGS = -shared \
 
 libOpenGL_la_LIBADD = \
 	libopengl_main.la \
-	../GLdispatch/libGLdispatch.la \
-	../GLdispatch/vnd-glapi/libglapi_opengl.la \
-	../util/libutils_misc.la
+	libGLdispatch.la \
+	libglapi_opengl.la
 
-include $(top_srcdir)/src/generate/glvnd_gen.mk
-
-BUILT_SOURCES = g_opengl_exports.sym
-CLEANFILES = $(BUILT_SOURCES)
+BUILT_SOURCES += g_opengl_exports.sym
 g_opengl_exports.sym : $(glapi_gen_libopengl_exports_deps)
 	$(call glapi_gen_libopengl_exports, opengl)
 
