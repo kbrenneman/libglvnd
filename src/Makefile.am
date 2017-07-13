@@ -10,6 +10,7 @@ endif
 if ENABLE_GLX
 SUBDIRS += GLX
 SUBDIRS += GL
+SUBDIRS += glxserver
 endif
 
 if ENABLE_GLES

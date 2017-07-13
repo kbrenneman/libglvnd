@@ -138,6 +138,7 @@ AX_PTHREAD()
 PKG_CHECK_MODULES([X11], [x11])
 PKG_CHECK_MODULES([XEXT], [xext])
 PKG_CHECK_MODULES([GLPROTO], [glproto])
+PKG_CHECK_MODULES([XORG], [xorg-server >= 1.11.0])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_TYPEOF
@@ -305,6 +306,7 @@ AC_CONFIG_FILES([Makefile
                  src/EGL/Makefile
                  src/GLdispatch/Makefile
                  src/GLdispatch/vnd-glapi/Makefile
+                 src/glxserver/Makefile
                  src/util/Makefile
                  tests/Makefile
                  tests/dummy/Makefile])
