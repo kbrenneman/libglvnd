@@ -217,7 +217,7 @@ static int CommonMakeCurrent(ClientPtr client,
     } else if (oldTag != NULL && newVendor != NULL
             && oldTag->context == context
             && oldTag->drawable == drawable
-            && oldTag->drawable == readdrawable)
+            && oldTag->readdrawable == readdrawable)
     {
         // The old and new values are all the same, so send a successful reply.
         reply.contextTag = oldTag->tag;
