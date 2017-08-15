@@ -30,6 +30,8 @@
 #ifndef GLX_SERVER_VENDOR_H
 #define GLX_SERVER_VENDOR_H
 
+#include <xorg-server.h>
+
 #include "glvnd/glxserverabi.h"
 #include "glvnd_list.h"
 

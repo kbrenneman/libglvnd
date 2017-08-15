@@ -30,6 +30,7 @@
 #ifndef GLXSERVER_H
 #define GLXSERVER_H
 
+#include <xorg-server.h>
 #include "glvnd/glxserverabi.h"
 
 #define GLXContextID CARD32
