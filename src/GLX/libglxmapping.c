@@ -517,6 +517,32 @@ fail:
     return NULL;
 }
 
+char *QueryVendorName(__GLXdisplayInfo *dpyInfo, const int screen)
+{
+    char *extensions;
+
+    if (!dpyInfo->glxSupported) {
+        return NULL;
+    }
+
+    extensions = __glXQueryServerString(dpyInfo, screen, GLX_EXTENSIONS);
+    if (extensions == NULL) {
+        return NULL;
+    }
+
+    if (!IsTokenInString(extensions, GLX_EXT_LIBGLVND_NAME,
+                strlen(GLX_EXT_LIBGLVND_NAME), " ")) {
+        // The GLX_EXT_libglvnd extension isn't supported on this screen. This
+        // may happen if it has different hardware behind it, or if the screen
+        // is configured in a way that doesn't support GLX.
+        free(extensions);
+        return NULL;
+    }
+    free(extensions);
+
+    return __glXQueryServerString(dpyInfo, screen, GLX_VENDOR_NAMES_EXT);
+}
+
 __GLXvendorInfo *__glXLookupVendorByScreen(Display *dpy, const int screen)
 {
     __GLXvendorInfo *vendor = NULL;
@@ -562,27 +588,25 @@ __GLXvendorInfo *__glXLookupVendorByScreen(Display *dpy, const int screen)
         }
 
         if (!vendor) {
-            if (dpyInfo->libglvndExtensionSupported) {
-                char *queriedVendorNames =
-                    __glXQueryServerString(dpyInfo, screen, GLX_VENDOR_NAMES_EXT);
-                if (queriedVendorNames != NULL) {
-                    char *name, *saveptr;
-                    for (name = strtok_r(queriedVendorNames, " ", &saveptr);
-                            name != NULL;
-                            name = strtok_r(NULL, " ", &saveptr)) {
-                        vendor = __glXLookupVendorByName(name);
+            char *queriedVendorNames =
+                QueryVendorName(dpyInfo, screen);
+            if (queriedVendorNames != NULL) {
+                char *name, *saveptr;
+                for (name = strtok_r(queriedVendorNames, " ", &saveptr);
+                        name != NULL;
+                        name = strtok_r(NULL, " ", &saveptr)) {
+                    vendor = __glXLookupVendorByName(name);
 
-                        // Make sure that the vendor library can support this screen.
-                        if (vendor != NULL && !vendor->glxvc->isScreenSupported(dpy, screen)) {
-                            vendor = NULL;
-                        }
-
-                        if (vendor != NULL) {
-                            break;
-                        }
+                    // Make sure that the vendor library can support this screen.
+                    if (vendor != NULL && !vendor->glxvc->isScreenSupported(dpy, screen)) {
+                        vendor = NULL;
                     }
-                    free(queriedVendorNames);
+
+                    if (vendor != NULL) {
+                        break;
+                    }
                 }
+                free(queriedVendorNames);
             }
         }
 
