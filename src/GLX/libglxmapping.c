@@ -665,28 +665,6 @@ static __GLXdisplayInfoHash *InitDisplayInfoEntry(Display *dpy)
             &pEntry->info.glxMajorOpcode, &eventBase,
             &pEntry->info.glxFirstError);
 
-    if (pEntry->info.glxSupported) {
-        int screen;
-
-        // Check to see if the server supports the GLX_EXT_libglvnd extension.
-        // Note that it has to be supported on every screen to use it.
-        pEntry->info.libglvndExtensionSupported = True;
-        for (screen = 0;
-                screen < ScreenCount(dpy) && pEntry->info.libglvndExtensionSupported;
-                screen++) {
-            char *extensions = __glXQueryServerString(&pEntry->info, screen, GLX_EXTENSIONS);
-            if (extensions != NULL) {
-                if (!IsTokenInString(extensions, GLX_EXT_LIBGLVND_NAME,
-                            strlen(GLX_EXT_LIBGLVND_NAME), " ")) {
-                    pEntry->info.libglvndExtensionSupported = False;
-                }
-                free(extensions);
-            } else {
-                pEntry->info.libglvndExtensionSupported = False;
-            }
-        }
-    }
-
     return pEntry;
 }
 

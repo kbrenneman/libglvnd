@@ -81,8 +81,6 @@ typedef struct __GLXdisplayInfoRec {
     /// The major opcode for GLX, if it's supported.
     int glxMajorOpcode;
     int glxFirstError;
-
-    Bool libglvndExtensionSupported;
 } __GLXdisplayInfo;
 
 typedef struct __GLXlocalDispatchFunctionRec {
