@@ -959,17 +959,21 @@ static void VendorFromXID(Display *dpy, __GLXdisplayInfo *dpyInfo, XID xid,
         vendor = pEntry->vendor;
         LKDHASH_UNLOCK(dpyInfo->xidVendorHash);
     } else {
+        int screen;
+
         LKDHASH_UNLOCK(dpyInfo->xidVendorHash);
 
-        if (dpyInfo->libglvndExtensionSupported) {
-            int screen = __glXGetDrawableScreen(dpyInfo, xid);
-            if (screen >= 0 && screen < ScreenCount(dpy)) {
-                vendor = __glXLookupVendorByScreen(dpy, screen);
-                if (vendor != NULL) {
-                    // Note that if this fails, it's not necessarily a problem.
-                    // We can just query it again next time.
-                    AddVendorXIDMapping(dpy, dpyInfo, xid, vendor);
-                }
+        // Note that it's possible that the server doesn't send back a screen
+        // number, because the drawable might be on a screen that doesn't
+        // support GLX_EXT_libglvnd. In that case, __glXGetDrawableScreen will
+        // just return zero.
+        screen = __glXGetDrawableScreen(dpyInfo, xid);
+        if (screen >= 0 && screen < ScreenCount(dpy)) {
+            vendor = __glXLookupVendorByScreen(dpy, screen);
+            if (vendor != NULL) {
+                // Note that if this fails, it's not necessarily a problem.
+                // We can just query it again next time.
+                AddVendorXIDMapping(dpy, dpyInfo, xid, vendor);
             }
         }
     }
@@ -1007,7 +1011,7 @@ __GLXvendorInfo *__glXVendorFromDrawable(Display *dpy, GLXDrawable drawable)
     __GLXdisplayInfo *dpyInfo = __glXLookupDisplay(dpy);
     __GLXvendorInfo *vendor = NULL;
     if (dpyInfo != NULL) {
-        if (dpyInfo->libglvndExtensionSupported) {
+        if (dpyInfo->glxSupported) {
             VendorFromXID(dpy, dpyInfo, drawable, &vendor);
         } else {
             // We'll use the same vendor for every screen in this case.
