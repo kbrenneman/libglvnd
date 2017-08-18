@@ -45,14 +45,7 @@ extern "C" {
 struct __GLXServerVendorRec {
     __GLXserverImports glxvc;
 
-    __GLXServerVendorInitProc initProc;
-    void *initParam;
-
-    /// This is True if this vendor was successfully initialized.
-    Bool initialized;
-
     struct glvnd_list entry;
-    struct glvnd_list allVendorsEntry;
 };
 
 /**
@@ -63,10 +56,9 @@ struct __GLXServerVendorRec {
  */
 extern struct glvnd_list __glXvendorList;
 
-__GLXServerVendor *__glXCreateVendor(__GLXServerVendorInitProc initProc, void *param);
+__GLXServerVendor *__glXCreateVendor(const __GLXserverImports *imports);
 void __glXDestroyVendor(__GLXServerVendor *vendor);
 
-void __glXVendorExtensionInit(const ExtensionEntry *extEntry);
 void __glXVendorExtensionReset(const ExtensionEntry *extEntry);
 
 #if defined(__cplusplus)

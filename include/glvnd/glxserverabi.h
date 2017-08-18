@@ -30,29 +30,20 @@
 /**
  * \file
  *
- * Defines the interface between the libglvnd server module and a vendor library.
+ * Defines the interface between the libglvnd server module and a vendor
+ * library.
  *
- * The display driver is responsible for creating a __GLXServerVendor handle
- * for its GLX implementation.
+ * Each screen may have one vendor library assigned to it. The GLVND module
+ * will examine each GLX request to determine which screen it goes to, and then
+ * it will forward that request to whichever vendor is assigned to that screen.
  *
- * The driver should create the vendor library handle at some point during
- * InitOutput(), before the extensions are initialized. The driver provides a
- * callback function which will be called to initialize the vendor.
+ * Each vendor library is represented by an opaque __GLXServerVendor handle.
+ * Display drivers are responsible for creating handles for its GLX
+ * implementations, and assigning those handles to each screen.
  *
- * When the GLX extension is initialized at the start of each generation, GLVND
- * will call the __GLXServerVendorInitProc callback function. The function must
- * populate the __GLXserverImports table for the vendor.
- *
- * Then, each server generation, during the _Screen::CreateScreenResources
- * callback, the driver should call setScreenVendor to assign the GLX vendor to
- * each screen.
- *
- * At the end of each generation, during the GLX extension's CloseDown
- * callback, GLVND will call the extensionCloseDown callback for each vendor.
- *
- * At the end of the last server generation, after calling the
- * extensionCloseDown callback, libglvnd will also free each of the
- * __GLXServerVendor handles.
+ * The GLVND module keeps a list of callbacks, which are called from
+ * InitExtensions. Drivers should use that callback to assign a vendor
+ * handle to whichever screens they support.
  *
  * Additional notes about dispatching:
  * - If a request has one or more GLXContextTag values, then the dispatch stub
@@ -100,19 +91,6 @@ typedef int (* __GLXServerDispatchProc) (ClientPtr client);
 typedef struct __GLXserverImportsRec __GLXserverImports;
 
 /**
- * This callback is called when the GLX extension is initialized at the start
- * of each generation.
- *
- * If this callback returns False, then GLVND will ignore the vendor for
- * the rest of the generation.
- *
- * \param extEntry The ExtensionEntry struct for the GLX extension.
- * \param imports The imports table that the vendor must fill in.
- * \return True on success, False on failure.
- */
-typedef Bool (* __GLXServerVendorInitProc) (const ExtensionEntry *extEntry, __GLXserverImports *imports, void *param);
-
-/**
  * Functions exported by libglvnd to the vendor library.
  */
 typedef struct __GLXserverExportsRec {
@@ -120,12 +98,44 @@ typedef struct __GLXserverExportsRec {
     int minorVersion;
 
     /**
+     * This callback is called during each server generation when the GLX
+     * extension is initialized.
+     *
+     * Drivers may create a __GLXServerVendor handle at any time, but may only
+     * assign a vendor to a screen from this callback.
+     *
+     * The callback is called with the ExtensionEntry pointer for the GLX
+     * extension.
+     */
+    CallbackListPtr *extensionInitCallback;
+
+    /**
+     * Allocates and zeroes a __GLXserverImports structure.
+     *
+     * Future versions of the GLVND interface may add optional members to the
+     * end of the __GLXserverImports struct. Letting the GLVND layer allocate
+     * the __GLXserverImports struct allows backward compatibility with
+     * existing drivers.
+     */
+    __GLXserverImports * (* allocateServerImports) (void);
+
+    /**
+     * Frees a __GLXserverImports structure that was allocated with
+     * \c allocateServerImports.
+     */
+    void (* freeServerImports) (__GLXserverImports *imports);
+
+    /**
      * Creates a new vendor library handle.
      */
-    __GLXServerVendor * (* createVendor) (__GLXServerVendorInitProc initProc, void *param);
+    __GLXServerVendor * (* createVendor) (const __GLXserverImports *imports);
 
     /**
      * Destroys a vendor library handle.
+     *
+     * This function may not be called while the vendor handle is assigned to a
+     * screen, but it may be called from the __GLXserverImports::extensionCloseDown
+     * callback.
      */
     void (* destroyVendor) (__GLXServerVendor *vendor);
 
@@ -212,6 +222,12 @@ struct __GLXserverImportsRec {
      * Called on a server reset.
      *
      * This is called from the extension's CloseDown callback.
+     *
+     * Note that this is called after freeing all of GLVND's per-screen data,
+     * so the callback may destroy any vendor handles.
+     *
+     * If the server is exiting, then GLVND will free any remaining vendor
+     * handles after calling the extensionCloseDown callbacks.
      */
     void (* extensionCloseDown) (const ExtensionEntry *extEntry);
 

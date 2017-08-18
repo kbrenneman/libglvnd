@@ -32,18 +32,21 @@
 #include <xf86.h>
 
 struct glvnd_list __glXvendorList = { &__glXvendorList, &__glXvendorList };
-static struct glvnd_list AllVendorsList = { &AllVendorsList, &AllVendorsList };
-static Bool extensionInitDone = FALSE;
 
-__GLXServerVendor *__glXCreateVendor(__GLXServerVendorInitProc initProc, void *param)
+__GLXServerVendor *__glXCreateVendor(const __GLXserverImports *imports)
 {
     __GLXServerVendor *vendor = NULL;
 
-    if (extensionInitDone) {
+    if (imports == NULL) {
+        ErrorF("GLX: Vendor library did not provide an imports table\n");
         return NULL;
     }
 
-    if (initProc == NULL) {
+    if (imports->extensionCloseDown == NULL
+            || imports->handleRequest == NULL
+            || imports->getDispatchAddress == NULL
+            || imports->makeCurrent == NULL) {
+        ErrorF("GLX: Vendor library is missing required callback functions.\n");
         return NULL;
     }
 
@@ -52,58 +55,18 @@ __GLXServerVendor *__glXCreateVendor(__GLXServerVendorInitProc initProc, void *p
         ErrorF("GLX: Can't allocate vendor library.\n");
         return NULL;
     }
-    vendor->initProc = initProc;
-    vendor->initParam = param;
+    memcpy(&vendor->glxvc, imports, sizeof(__GLXserverImports));
 
-    glvnd_list_append(&vendor->allVendorsEntry, &AllVendorsList);
+    glvnd_list_append(&vendor->entry, &__glXvendorList);
     return vendor;
 }
 
 void __glXDestroyVendor(__GLXServerVendor *vendor)
 {
+    // TODO: Check if this vendor is in use in a screen?
     if (vendor != NULL) {
-        if (vendor->initialized) {
-            ErrorF("GLX: __glXDestroyVendor called for initialized vendor\n");
-            return;
-        }
-
-        glvnd_list_del(&vendor->allVendorsEntry);
+        glvnd_list_del(&vendor->entry);
         free(vendor);
-    }
-}
-
-static void InitVendor(const ExtensionEntry *extEntry, __GLXServerVendor *vendor)
-{
-    memset(&vendor->glxvc, 0, sizeof(vendor->glxvc));
-    vendor->initialized = FALSE;
-
-    if (!vendor->initProc(extEntry, &vendor->glxvc, vendor->initParam)) {
-        return;
-    }
-
-    if (vendor->glxvc.extensionCloseDown == NULL
-            || vendor->glxvc.handleRequest == NULL
-            || vendor->glxvc.getDispatchAddress == NULL
-            || vendor->glxvc.makeCurrent == NULL) {
-        ErrorF("GLX: Vendor library is missing required callback functions.\n");
-        return;
-    }
-
-    glvnd_list_append(&vendor->entry, &__glXvendorList);
-    vendor->initialized = TRUE;
-}
-
-void __glXVendorExtensionInit(const ExtensionEntry *extEntry)
-{
-    __GLXServerVendor *vendor, *tempVendor;
-    extensionInitDone = TRUE;
-
-    assert(glvnd_list_is_empty(&__glXvendorList));
-
-    // TODO: Do we allow the driver to destroy a vendor library handle from
-    // here?
-    glvnd_list_for_each_entry_safe(vendor, tempVendor, &AllVendorsList, allVendorsEntry) {
-        InitVendor(extEntry, vendor);
     }
 }
 
@@ -114,21 +77,15 @@ void __glXVendorExtensionReset(const ExtensionEntry *extEntry)
     // TODO: Do we allow the driver to destroy a vendor library handle from
     // here?
     glvnd_list_for_each_entry_safe(vendor, tempVendor, &__glXvendorList, entry) {
-        assert(vendor->initialized);
-
-        glvnd_list_del(&vendor->entry);
-        vendor->initialized = FALSE;
         if (vendor->glxvc.extensionCloseDown != NULL) {
             vendor->glxvc.extensionCloseDown(extEntry);
         }
     }
-    extensionInitDone = FALSE;
-    assert(glvnd_list_is_empty(&__glXvendorList));
 
     if (xf86ServerIsExiting()) {
         // If the server is exiting instead of starting a new generation, then
         // free the remaining __GLXServerVendor structs.
-        glvnd_list_for_each_entry_safe(vendor, tempVendor, &AllVendorsList, allVendorsEntry) {
+        glvnd_list_for_each_entry_safe(vendor, tempVendor, &__glXvendorList, entry) {
             __glXDestroyVendor(vendor);
         }
     }

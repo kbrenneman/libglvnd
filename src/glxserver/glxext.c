@@ -47,6 +47,8 @@
 
 int __glXerrorBase = 0;
 
+static CallbackListPtr extensionInitCallbackList;
+
 static void GLXClientCallback(CallbackListPtr *list, void *closure, void *data)
 {
     NewClientInfoRec *clientinfo = (NewClientInfoRec *) data;
@@ -100,7 +102,7 @@ static void GLXExtensionInit(void)
     }
 
     __glXerrorBase = extEntry->errorBase;
-    __glXVendorExtensionInit(extEntry);
+    CallCallbacks(&extensionInitCallbackList, extEntry);
 }
 
 static void *GLXSetup(void *module, void *opts, int *errmaj, int *errmin)
@@ -165,6 +167,17 @@ Bool GetContextTag(ClientPtr client, GLXContextTag tag, __GLXServerVendor **vend
     return (foundVendor != NULL);
 }
 
+__GLXserverImports *AllocateServerImports(void)
+{
+    __GLXserverImports *imports = (__GLXserverImports *) calloc(1, sizeof(__GLXserverImports));
+    return imports;
+}
+
+void FreeServerImports(__GLXserverImports *imports)
+{
+    free(imports);
+}
+
 static XF86ModuleVersionInfo glxVersionInfo =
 {
     "glx",
@@ -185,6 +198,11 @@ PUBLIC const XF86ModuleData glxModuleData = { &glxVersionInfo,
 PUBLIC const __GLXserverExports __glXvendorExports = {
     GLXSERVER_VENDOR_ABI_MAJOR_VERSION, // majorVersion
     GLXSERVER_VENDOR_ABI_MINOR_VERSION, // minorVersion
+
+    &extensionInitCallbackList, // extensionInitCallback
+
+    AllocateServerImports, // allocateServerImports
+    FreeServerImports, // freeServerImports
 
     __glXCreateVendor, // createVendor
     __glXDestroyVendor, // destroyVendor

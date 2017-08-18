@@ -257,12 +257,13 @@ Bool __glXSetScreenVendor(ScreenPtr screen, __GLXServerVendor *vendor)
     if (vendor == NULL) {
         return False;
     }
-    if (!vendor->initialized) {
-        return False;
-    }
 
     priv = __glXGetScreen(screen);
     if (priv == NULL) {
+        return False;
+    }
+
+    if (priv->vendor != NULL) {
         return False;
     }
 
