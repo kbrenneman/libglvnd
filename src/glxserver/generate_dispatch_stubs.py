@@ -118,9 +118,7 @@ def generateDispatchFunction(func):
     elif (func["method"] == "XID"):
         text += "    vendor = __glXvendorExports.getXIDMap({f[member]});\n"
     elif (func["method"] == "TAG"):
-        text += "    if (!__glXvendorExports.getContextTag(client, {f[member]}, &vendor, NULL)) {{\n"
-        text += "        vendor = NULL;\n"
-        text += "    }}\n"
+        text += "    vendor = __glXvendorExports.getContextTag(client, {f[member]});\n"
 
     text += "    if (vendor != NULL) {{\n"
     # If we need to add or remove an XID from GLVND's mapping, then grab the

@@ -198,10 +198,34 @@ typedef struct __GLXserverExportsRec {
      *
      * \param client The client connection.
      * \param tag The context tag.
-     * \param[out] vendor Returns the vendor that owns the context tag.
-     * \param[out] data Returns the vendor-private data for the context tag.
+     * \return The vendor that owns the context tag, or \c NULL if the context
+     * tag is invalid.
      */
-    Bool (* getContextTag)(ClientPtr client, GLXContextTag tag, __GLXServerVendor **vendor, void **data);
+    __GLXServerVendor * (* getContextTag)(ClientPtr client, GLXContextTag tag);
+
+    /**
+     * Assigns a pointer to vendor-private data for a context tag.
+     *
+     * Since the tag values are assigned by GLVND, vendors can use this
+     * function to store any private data they need for a context tag.
+     *
+     * \param client The client connection.
+     * \param tag The context tag.
+     * \param data An arbitrary pointer value.
+     */
+    Bool (* setContextTagPrivate)(ClientPtr client, GLXContextTag tag, void *data);
+
+    /**
+     * Returns the private data pointer that was assigned from
+     * setContextTagPrivate.
+     *
+     * This function is safe to use in __GLXserverImports::makeCurrent to look
+     * up the old context private pointer.
+     *
+     * However, this function is not safe to use from a ClientStateCallback,
+     * because GLVND may have alraedy deleted the tag by that point.
+     */
+    void * (* getContextTagPrivate)(ClientPtr client, GLXContextTag tag);
 
     __GLXServerVendor * (* getVendorForScreen) (ClientPtr client, ScreenPtr screen);
 
@@ -253,21 +277,18 @@ struct __GLXserverImportsRec {
      * To ensure that context tags are unique, libglvnd will select a context
      * tag and pass it to the vendor library.
      *
-     * The vendor may provide a pointer to private data, which can later be
-     * retrieved with \c __GLXserverExports::getContextTag.
+     * The vendor can use \c __GLXserverExports::getContextTagPrivate to look
+     * up the private data pointer for \p oldContextTag.
      *
-     * Note that when a client disconnects, libglvnd will free any context
-     * tags from that client. The vendor library is responsible for freeing any
-     * of its resources, including any private data associated with the tag.
+     * Likewise, the vendor can use \c __GLXserverExports::setContextTagPrivate
+     * to assign a private data pointer to \p newContextTag.
      */
     int (* makeCurrent) (ClientPtr client,
         GLXContextTag oldContextTag,
-        void *oldContextTagData,
         XID drawable,
         XID readdrawable,
         XID context,
-        GLXContextTag newContextTag,
-        void **newContextTagData);
+        GLXContextTag newContextTag);
 };
 
 #define __GLVND_SERVER_GET_EXPORTS_NAME "glvndGetExports"

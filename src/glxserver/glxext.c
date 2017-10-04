@@ -148,23 +148,36 @@ int ForwardRequest(__GLXServerVendor *vendor, ClientPtr client)
     return vendor->glxvc.handleRequest(client);
 }
 
-Bool GetContextTag(ClientPtr client, GLXContextTag tag, __GLXServerVendor **vendor, void **data)
+__GLXServerVendor * GetContextTag(ClientPtr client, GLXContextTag tag)
 {
     __GLXContextTagInfo *tagInfo = __glXLookupContextTag(client, tag);
-    __GLXServerVendor *foundVendor = NULL;
-    void *foundData = NULL;
-
     if (tagInfo != NULL) {
-        foundVendor = tagInfo->vendor;
-        foundData = tagInfo->data;
+        return tagInfo->vendor;
+    } else {
+        return NULL;
     }
-    if (vendor != NULL) {
-        *vendor = foundVendor;
+}
+
+Bool SetContextTagPrivate(ClientPtr client, GLXContextTag tag,
+        void *data)
+{
+    __GLXContextTagInfo *tagInfo = __glXLookupContextTag(client, tag);
+    if (tagInfo != NULL) {
+        tagInfo->data = data;
+        return True;
+    } else {
+        return False;
     }
-    if (data != NULL) {
-        *data = foundData;
+}
+
+void * GetContextTagPrivate(ClientPtr client, GLXContextTag tag)
+{
+    __GLXContextTagInfo *tagInfo = __glXLookupContextTag(client, tag);
+    if (tagInfo != NULL) {
+        return tagInfo->data;
+    } else {
+        return NULL;
     }
-    return (foundVendor != NULL);
 }
 
 __GLXserverImports *AllocateServerImports(void)
@@ -212,6 +225,8 @@ PUBLIC const __GLXserverExports __glXvendorExports = {
     __glXGetXIDMap, // getXIDMap
     __glXRemoveXIDMap, // removeXIDMap
     GetContextTag, // getContextTag
+    SetContextTagPrivate, // setContextTagPrivate
+    GetContextTagPrivate, // getContextTagPrivate
     __glXGetVendorForScreen, // getVendorForScreen
     ForwardRequest, // forwardRequest
 };

@@ -144,9 +144,8 @@ static int CommonLoseCurrent(ClientPtr client, __GLXContextTagInfo *tagInfo)
     int ret;
 
     ret = tagInfo->vendor->glxvc.makeCurrent(client,
-            tagInfo->tag, tagInfo->data, // No old context tag,
-            None, None, None,
-            0, NULL);
+            tagInfo->tag, // No old context tag,
+            None, None, None, 0);
 
     if (ret == Success) {
         __glXFreeContextTag(tagInfo);
@@ -167,10 +166,9 @@ static int CommonMakeNewCurrent(ClientPtr client,
     tagInfo = __glXAllocContextTag(client, vendor);
 
     ret = vendor->glxvc.makeCurrent(client,
-            0, NULL, // No old context tag,
+            0, // No old context tag,
             drawable, readdrawable, context,
-            tagInfo->tag,
-            &tagInfo->data);
+            tagInfo->tag);
 
     if (ret == Success) {
         tagInfo->drawable = drawable;
