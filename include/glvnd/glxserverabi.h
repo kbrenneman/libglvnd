@@ -274,6 +274,13 @@ struct __GLXserverImportsRec {
     /**
      * Handles a MakeCurrent request.
      *
+     * This function is called to handle any MakeCurrent request. The vendor
+     * library should deal with changing the current context. After the vendor
+     * returns GLVND will send the reply.
+     *
+     * In addition, GLVND will call this function with any current contexts
+     * when a client disconnects.
+     *
      * To ensure that context tags are unique, libglvnd will select a context
      * tag and pass it to the vendor library.
      *

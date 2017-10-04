@@ -89,6 +89,14 @@ void __glXFreeClientData(ClientPtr client)
 {
     __GLXClientPriv *cl = (__GLXClientPriv *) xglvGetClientPrivate(client);
     if (cl != NULL) {
+        unsigned int i;
+        for (i=0; i<cl->contextTagCount; i++) {
+            __GLXContextTagInfo *tag = &cl->contextTags[i];
+            if (tag->vendor != NULL) {
+                tag->vendor->glxvc.makeCurrent(client, tag->tag,
+                        None, None, None, 0);
+            }
+        }
         xglvSetClientPrivate(client, NULL);
         free(cl->contextTags);
         free(cl);
