@@ -70,7 +70,7 @@ __asm__(".balign " U_STRINGIFY(GLDISPATCH_PAGE_SIZE) "\n"
     "  mflr   0\n\t"                                    \
     "  std    0, 16(1)\n\t"                             \
     "  stdu   1, -144(1)\n\t"                           \
-    "  std    2, 24(1)\n\t"                             \
+    "  std    2, 144+24(1)\n\t"                             \
     "  std    3, 56(1)\n\t"                             \
     "  std    4, 64(1)\n\t"                             \
     "  std    5, 72(1)\n\t"                             \
@@ -84,7 +84,7 @@ __asm__(".balign " U_STRINGIFY(GLDISPATCH_PAGE_SIZE) "\n"
     "  ld     12, _glapi_get_current@got@l(12)\n\t"     \
     "  mtctr  12\n\t"                                   \
     "  bctrl\n\t"                                       \
-    "  ld     2, 24(1)\n\t"                             \
+    "  ld     2, 144+24(1)\n\t"                             \
     "  mr     11, 3\n\t"                                \
     "  ld     3, 56(1)\n\t"                             \
     "  ld     4, 64(1)\n\t"                             \
@@ -149,7 +149,7 @@ static const uint32_t ENTRY_TEMPLATE[] =
     0x4e800420, // <ENTRY+036>: bctr
                 //              2000:
     0xf821ff71, // <ENTRY+040>: stdu   1, -144(1)
-    0xf8410018, // <ENTRY+044>: std    2, 24(1)
+    0xf84100a8, // <ENTRY+044>: std    2, 144+24(1)
     0xf8610038, // <ENTRY+048>: std    3, 56(1)
     0xf8810040, // <ENTRY+052>: std    4, 64(1)
     0xf8a10048, // <ENTRY+056>: std    5, 72(1)
@@ -162,7 +162,7 @@ static const uint32_t ENTRY_TEMPLATE[] =
     0xe98c00a4, // <ENTRY+084>: ld     12, 9000f-1000b+8(12)
     0x7d8903a6, // <ENTRY+088>: mtctr  12
     0x4e800421, // <ENTRY+092>: bctrl
-    0xe8410018, // <ENTRY+096>: ld     2, 24(1)
+    0xe84100a8, // <ENTRY+096>: ld     2, 144+24(1)
     0xe9410070, // <ENTRY+100>: ld     10, 112(1)
     0x7c6b1b78, // <ENTRY+104>: mr     11, 3
     0xe8610038, // <ENTRY+108>: ld     3, 56(1)
