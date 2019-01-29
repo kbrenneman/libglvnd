@@ -45,6 +45,7 @@
 #include "glvnd_genentry.h"
 #include "trace.h"
 #include "winsys_dispatch.h"
+#include "app_profile.h"
 
 #include "lkdhash.h"
 
@@ -128,6 +129,9 @@ static const __GLXapiExports glxExportsTable = {
     .removeVendorDrawableMapping = __glXRemoveVendorDrawableMapping,
     .vendorFromDrawable = __glXVendorFromDrawable,
 };
+
+static GLVNDappProfile appProfile = {};
+static glvnd_once_t appProfileOnce = GLVND_ONCE_INIT;
 
 /*!
  * Looks for a GLX dispatch function.
@@ -518,6 +522,54 @@ fail:
     return NULL;
 }
 
+static void InitAppProfile(void)
+{
+    glvndProfileLoad(&appProfile);
+}
+
+static void __glXCheckScreenOffload(__GLXdisplayInfo *dpyInfo)
+{
+    int i;
+
+    if (dpyInfo->offloadCheckDone) {
+        return;
+    }
+    dpyInfo->offloadCheckDone = True;
+
+    __glvndPthreadFuncs.once(&appProfileOnce, InitAppProfile);
+
+    // If the app profile specifies any vendor libraries, then try them first.
+    for (i=0; i<appProfile.vendorCount; i++) {
+        const GLVNDappProfileVendor *profileVendor = appProfile.vendors[i];
+        __GLXvendorInfo *vendor;
+        int screen;
+
+        vendor = __glXLookupVendorByName(profileVendor->name);
+        if (vendor == NULL) {
+            continue;
+        }
+
+        if (vendor->glxvc->initOffloadVendor == NULL
+                || vendor->glxvc->checkOffloadVendorScreen == NULL) {
+            continue;
+        }
+
+        if (!vendor->glxvc->initOffloadVendor(dpyInfo->dpy, profileVendor->data)) {
+            continue;
+        }
+
+        // The vendor supports offloading. Assign the vendor to any screens
+        // that it supports. We'll handle any remaining screens with the usual
+        // GLX_VENDOR_NAMES_EXT query.
+        for (screen=0; screen<ScreenCount(dpyInfo->dpy); screen++) {
+            if (!vendor->glxvc->checkOffloadVendorScreen(dpyInfo->dpy, screen)) {
+                dpyInfo->vendors[screen] = vendor;
+            }
+        }
+        break;
+    }
+}
+
 __GLXvendorInfo *__glXLookupVendorByScreen(Display *dpy, const int screen)
 {
     __GLXvendorInfo *vendor = NULL;
@@ -541,8 +593,10 @@ __GLXvendorInfo *__glXLookupVendorByScreen(Display *dpy, const int screen)
     }
 
     __glvndPthreadFuncs.rwlock_wrlock(&dpyInfo->vendorLock);
-    vendor = dpyInfo->vendors[screen];
 
+    __glXCheckScreenOffload(dpyInfo);
+
+    vendor = dpyInfo->vendors[screen];
     if (!vendor) {
         /*
          * If we have specified a vendor library, use that. Otherwise,
@@ -1037,6 +1091,8 @@ void __glXMappingTeardown(Bool doReset)
         }
     } else {
         __GLXvendorNameHash *pEntry, *tmp;
+
+        glvndProfileFree(&appProfile);
 
         /* Tear down all hashtables used in this file */
         __glvndWinsysDispatchCleanup();

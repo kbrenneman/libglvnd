@@ -71,6 +71,7 @@ typedef struct __GLXdisplayInfoRec {
      * Do not access this directly. Instead, call \c __glXLookupVendorByScreen.
      */
     __GLXvendorInfo **vendors;
+    Bool offloadCheckDone;
     glvnd_rwlock_t vendorLock;
 
     DEFINE_LKDHASH(__GLXvendorXIDMappingHash, xidVendorHash);
