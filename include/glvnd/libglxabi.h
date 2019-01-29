@@ -100,7 +100,7 @@ extern "C" {
  * will still work.
  */
 #define GLX_VENDOR_ABI_MAJOR_VERSION ((uint32_t) 1)
-#define GLX_VENDOR_ABI_MINOR_VERSION ((uint32_t) 0)
+#define GLX_VENDOR_ABI_MINOR_VERSION ((uint32_t) 1)
 #define GLX_VENDOR_ABI_VERSION ((GLX_VENDOR_ABI_MAJOR_VERSION << 16) | GLX_VENDOR_ABI_MINOR_VERSION)
 static inline uint32_t GLX_VENDOR_ABI_GET_MAJOR_VERSION(uint32_t version)
 {
@@ -389,6 +389,38 @@ typedef struct __GLXapiImportsRec {
      * \note This function may be called concurrently from multiple threads.
      */
     void (*patchThreadAttach)(void);
+
+    /*!
+     * Notifies the vendor that the user has enabled GPU offloading.
+     *
+     * If \p profileData is not \c NULL, then it will be a nul-terminated
+     * string that contains additional data from the app profile. This is where
+     * the profile could define things like a specific device.
+     *
+     * TODO: Decide on a format for profileData. If we use JSON for the profile
+     * config files, then it could just be a block of JSON text.
+     *
+     * \param dpy The display pointer.
+     * \param profileData Any additional configuration data from the profile.
+     */
+    Bool (*initOffloadVendor) (Display *dpy, const char *profileData);
+
+    /*!
+     * Returns True if the vendor can support GPU offloading on a specific
+     * screen.
+     *
+     * Libglvnd will call this function for each screen if and only if
+     * \c initOffloadVendor returns True.
+     *
+     * If \c checkOffloadVendorScreen returns True, then libglvnd will assign
+     * the vendor to this screen. Otherwise, libglvnd will go through its
+     * normal vendor selection process.
+     *
+     * Note that a vendor should only return True if it can support GPU
+     * offloading, not if it would have to fall back to indirect or software
+     * rendering.
+     */
+    Bool (*checkOffloadVendorScreen) (Display *dpy, int screen);
 
 } __GLXapiImports;
 
