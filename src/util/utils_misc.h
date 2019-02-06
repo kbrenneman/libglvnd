@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <dirent.h>
 
 /*
  * Various macros which may prove useful in various places
@@ -179,5 +180,15 @@ char *UnionExtensionStrings(char *currentString, const char *newString);
  * \param newString The other extension string.
  */
 void IntersectionExtensionStrings(char *currentString, const char *newString);
+
+/**
+ * A wrapper around scandir(3) that returns the files as an array of strings.
+ *
+ * \param dirName The name of the directory to scan.
+ * \param filter A filter function to pass to scandir.
+ * \return A NULL-terminated array of paths. Each element includes \p dirName
+ *         as a prefix. The whole array is allocated as a single block.
+ */
+char **ScandirArray(const char *dirName, int (*filter)(const struct dirent *));
 
 #endif // !defined(__UTILS_MISC_H)

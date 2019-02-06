@@ -417,3 +417,66 @@ void IntersectionExtensionStrings(char *currentString, const char *newString)
     }
     *ptr = '\0';
 }
+
+static int CompareFilenames(const struct dirent **ent1, const struct dirent **ent2)
+{
+    return strcmp((*ent1)->d_name, (*ent2)->d_name);
+}
+
+char **ScandirArray(const char *dirName,
+        int (*filter)(const struct dirent *))
+{
+    struct dirent **entries = NULL;
+    size_t dirnameLen;
+    char pathSep = '\x00';
+    int i, count;
+    size_t bufSize;
+    char **result;
+    char *ptr;
+
+    count = scandir(dirName, &entries, filter, CompareFilenames);
+    if (count <= 0) {
+        count = 0;
+        entries = NULL;
+    }
+
+    // Check if dirName ends with a "/" character. If it doesn't, then we need
+    // to add one when we construct the full file paths below.
+    dirnameLen = strlen(dirName);
+    if (dirnameLen > 0 && dirName[dirnameLen - 1] != '/') {
+        pathSep = '/';
+    }
+
+    // Find the total buffer size we'll need
+    bufSize = (count + 1) * sizeof(char *);
+    for (i=0; i<count; i++) {
+        bufSize += dirnameLen + strlen(entries[i]->d_name) + 2;
+    }
+
+    result = (char **) malloc(bufSize);
+    if (result != NULL) {
+        ptr = (char *) (result + count + 1);
+        for (i=0; i<count; i++) {
+            size_t len = strlen(entries[i]->d_name);
+            result[i] = ptr;
+
+            memcpy(ptr, dirName, dirnameLen);
+            ptr += dirnameLen;
+
+            if (pathSep != '\x00') {
+                *ptr++ = pathSep;
+            }
+            memcpy(ptr, entries[i]->d_name, len);
+            ptr += len;
+            *ptr++ = '\x00';
+        }
+        result[count] = NULL;
+    }
+
+    for (i=0; i<count; i++) {
+        free(entries[i]);
+    }
+    free(entries);
+
+    return result;
+}
