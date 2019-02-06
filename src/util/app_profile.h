@@ -30,6 +30,8 @@
 #ifndef APP_PROFILE_H
 #define APP_PROFILE_H
 
+#include <GL/gl.h>
+
 typedef struct
 {
     /// The name of the vendor library to load.
@@ -37,6 +39,17 @@ typedef struct
 
     /// Vendor-specific data to pass to the vendor library.
     const char *data;
+
+    /**
+     * If this is true, then libglvnd will only try to load this vendor if it's
+     * listed in the server's GLX_VENDOR_NAMES_EXT string for the default
+     * screen.
+     *
+     * Note that this is only an optimization. If a vendor library provides a
+     * initOffloadVendor function, then it must be able to cope with getting
+     * called with any display.
+     */
+    GLboolean onlyInServerList;
 } GLVNDappProfileVendor;
 
 /**

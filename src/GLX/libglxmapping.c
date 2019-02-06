@@ -530,6 +530,8 @@ static void InitAppProfile(void)
 static void __glXCheckScreenOffload(__GLXdisplayInfo *dpyInfo)
 {
     int i;
+    char *serverVendorNames = NULL;
+    Bool serverVendorDone = False;
 
     if (dpyInfo->offloadCheckDone) {
         return;
@@ -543,6 +545,20 @@ static void __glXCheckScreenOffload(__GLXdisplayInfo *dpyInfo)
         const GLVNDappProfileVendor *profileVendor = appProfile.vendors[i];
         __GLXvendorInfo *vendor;
         int screen;
+
+        if (profileVendor->onlyInServerList) {
+            if (!serverVendorDone && dpyInfo->libglvndExtensionSupported) {
+                serverVendorNames = __glXQueryServerString(dpyInfo,
+                        DefaultScreen(dpyInfo->dpy), GLX_VENDOR_NAMES_EXT);
+                serverVendorDone = True;
+            }
+            if (serverVendorNames != NULL) {
+                if (!IsTokenInString(serverVendorNames, profileVendor->name,
+                            strlen(profileVendor->name), " ")) {
+                    continue;
+                }
+            }
+        }
 
         vendor = __glXLookupVendorByName(profileVendor->name);
         if (vendor == NULL) {
@@ -568,6 +584,7 @@ static void __glXCheckScreenOffload(__GLXdisplayInfo *dpyInfo)
         }
         break;
     }
+    free(serverVendorNames);
 }
 
 __GLXvendorInfo *__glXLookupVendorByScreen(Display *dpy, const int screen)

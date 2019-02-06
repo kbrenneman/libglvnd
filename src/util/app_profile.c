@@ -62,6 +62,7 @@ static GLVNDappProfileVendor *AllocProfileVendor(const char *name, const char *d
     } else {
         vendor->data = NULL;
     }
+    vendor->onlyInServerList = GL_FALSE;
     return vendor;
 }
 
