@@ -72,4 +72,7 @@ void glvndProfileLoad(GLVNDappProfile *profile);
  */
 void glvndProfileFree(GLVNDappProfile *profile);
 
+GLVNDappProfileVendor *glvndProfileAddVendor(GLVNDappProfile *profile, const char *name, const char *data);
+void glvndLoadProfileConfig(GLVNDappProfile *profile);
+
 #endif // APP_PROFILE_H

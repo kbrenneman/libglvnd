@@ -37,4 +37,8 @@ libcJSON_la_SOURCES = cJSON.c
 
 noinst_LTLIBRARIES += libapp_profile.la
 libapp_profile_la_SOURCES = app_profile.c
+libapp_profile_la_SOURCES += app_profile_parser.c
 libapp_profile_la_SOURCES += app_profile.h
+libapp_profile_la_CFLAGS =
+libapp_profile_la_CFLAGS += -DSYSCONFDIR_BASE=\"@sysconfdir@/glvnd\"
+libapp_profile_la_CFLAGS += -DDATADIR_BASE=\"@datadir@/glvnd\"

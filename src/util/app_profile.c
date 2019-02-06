@@ -66,20 +66,24 @@ static GLVNDappProfileVendor *AllocProfileVendor(const char *name, const char *d
     return vendor;
 }
 
-static void glvndProfileAddVendor(GLVNDappProfile *profile, const char *name, const char *data)
+GLVNDappProfileVendor *glvndProfileAddVendor(GLVNDappProfile *profile, const char *name, const char *data)
 {
     GLVNDappProfileVendor **newVendors = realloc(profile->vendors,
             (profile->vendorCount + 1) * sizeof(GLVNDappProfileVendor *));
+    GLVNDappProfileVendor *vendor;
     if (newVendors == NULL)
     {
-        return;
+        return NULL;
     }
     profile->vendors = newVendors;
 
-    profile->vendors[profile->vendorCount] = AllocProfileVendor(name, data);
-    if (profile->vendors[profile->vendorCount] != NULL) {
-        profile->vendorCount++;
+    vendor = AllocProfileVendor(name, data);
+    if (vendor == NULL) {
+        return NULL;
     }
+    profile->vendors[profile->vendorCount] = vendor;
+    profile->vendorCount++;
+    return vendor;
 }
 
 void glvndProfileFree(GLVNDappProfile *profile)
@@ -122,5 +126,5 @@ void glvndProfileLoad(GLVNDappProfile *profile)
         return;
     }
 
-    // TODO: Load a profile from whatever config files we've got.
+    glvndLoadProfileConfig(profile);
 }
