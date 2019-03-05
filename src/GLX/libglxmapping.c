@@ -578,7 +578,7 @@ static void __glXCheckScreenOffload(__GLXdisplayInfo *dpyInfo)
         // that it supports. We'll handle any remaining screens with the usual
         // GLX_VENDOR_NAMES_EXT query.
         for (screen=0; screen<ScreenCount(dpyInfo->dpy); screen++) {
-            if (!vendor->glxvc->checkOffloadVendorScreen(dpyInfo->dpy, screen)) {
+            if (vendor->glxvc->checkOffloadVendorScreen(dpyInfo->dpy, screen)) {
                 dpyInfo->vendors[screen] = vendor;
             }
         }
