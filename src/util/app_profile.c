@@ -34,6 +34,8 @@
 #include <unistd.h>
 #include <GL/gl.h>
 
+#include "cJSON.h"
+
 static GLVNDappProfileVendor *AllocProfileVendor(const char *name, const char *data)
 {
     GLVNDappProfileVendor *vendor;
@@ -102,6 +104,7 @@ static GLboolean PopulateFromEnvironment(GLVNDappProfile *profile)
 {
     const char *name;
     const char *data;
+    char *buf = NULL;
 
     name = getenv("__GLVND_VENDOR_NAME");
     if (name == NULL) {
@@ -109,8 +112,24 @@ static GLboolean PopulateFromEnvironment(GLVNDappProfile *profile)
     }
 
     data = getenv("__GLVND_VENDOR_DATA");
+    if (data != NULL) {
+        // If the environment variable already contains valid JSON data, then
+        // use it as-is. Otherwise, wrap the value into a JSON string.
+        cJSON *root = cJSON_Parse(data);
+        if (root != NULL) {
+            cJSON_Delete(root);
+        } else {
+            root = cJSON_CreateString(data);
+            if (root != NULL) {
+                buf = cJSON_Print(root);
+                data = buf;
+                cJSON_Delete(root);
+            }
+        }
+    }
 
     glvndProfileAddVendor(profile, name, data);
+    free(buf);
     return GL_TRUE;
 }
 
