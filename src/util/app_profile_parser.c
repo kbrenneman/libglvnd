@@ -633,7 +633,7 @@ void glvndLoadProfileConfig(GLVNDappProfile *profile)
     } else {
         int i;
         for (i=0; parser.configDirs[i] != NULL; i++) {
-            GLboolean success = ParseProfileDir(&parser, parser.configDirs[i]);
+            success = ParseProfileDir(&parser, parser.configDirs[i]);
             if (!success || parser.overrideProfile) {
                 break;
             }
