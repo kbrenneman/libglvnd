@@ -282,12 +282,12 @@ static GLboolean ParseVendorNodeCommon(struct glvnd_list *vendorList, cJSON *ven
     cJSON *node;
     ParserProfileVendorEntry *vendor;
 
-    if (vendorNode == NULL || vendorNode->type != cJSON_Object) {
+    if (!cJSON_IsObject(vendorNode)) {
         return GL_TRUE;
     }
 
     node = cJSON_GetObjectItem(vendorNode, "vendor_name");
-    if (node == NULL || node->type != cJSON_String) {
+    if (!cJSON_IsString(node)) {
         return GL_TRUE;
     }
     name = node->valuestring;
@@ -305,7 +305,7 @@ static GLboolean ParseVendorNodeCommon(struct glvnd_list *vendorList, cJSON *ven
     memcpy(vendor->name, name, len);
 
     node = cJSON_GetObjectItem(vendorNode, "disable");
-    if (node != NULL && node->type == cJSON_True) {
+    if (cJSON_IsTrue(node)) {
         vendor->disabled = GL_TRUE;
     } else {
         node = cJSON_GetObjectItem(vendorNode, "vendor_data");
@@ -318,7 +318,7 @@ static GLboolean ParseVendorNodeCommon(struct glvnd_list *vendorList, cJSON *ven
         }
 
         node = cJSON_GetObjectItem(vendorNode, "only_in_server_list");
-        if (node != NULL && node->type == cJSON_True) {
+        if (cJSON_IsTrue(node)) {
             vendor->onlyInServerList = GL_TRUE;
         }
     }
@@ -333,12 +333,12 @@ static GLboolean ParseRuleNode(ParserState *parser, cJSON *ruleNode)
     cJSON *node;
     ParserProfileRuleEntry *rule;
 
-    if (ruleNode == NULL || ruleNode->type != cJSON_Object) {
+    if (!cJSON_IsObject(ruleNode)) {
         return GL_TRUE;
     }
 
     node = cJSON_GetObjectItem(ruleNode, "rule_name");
-    if (node == NULL || node->type != cJSON_String) {
+    if (!cJSON_IsString(node)) {
         return GL_TRUE;
     }
     name = node->valuestring;
@@ -352,7 +352,7 @@ static GLboolean ParseRuleNode(ParserState *parser, cJSON *ruleNode)
     }
 
     node = cJSON_GetObjectItem(ruleNode, "override");
-    if (node != NULL && node->type == cJSON_True) {
+    if (cJSON_IsTrue(node)) {
         rule->overrideRule = GL_TRUE;
     }
 
@@ -361,7 +361,7 @@ static GLboolean ParseRuleNode(ParserState *parser, cJSON *ruleNode)
 
 static GLboolean CheckVersion(cJSON *root)
 {
-    if (root == NULL || root->type != cJSON_Object) {
+    if (!cJSON_IsObject(root)) {
         return GL_FALSE;
     }
 
@@ -385,7 +385,7 @@ static GLboolean ParseRulesFile(ParserState *parser, const char *path)
     }
 
     node = cJSON_GetObjectItem(root, "rules");
-    if (node != NULL && node->type == cJSON_Array) {
+    if (cJSON_IsArray(node)) {
         for (node = node->child; node != NULL; node = node->next) {
             if (!ParseRuleNode(parser, node)) {
                 cJSON_Delete(root);
@@ -472,17 +472,17 @@ static GLboolean ProfileNodeMatches(ParserState *parser, cJSON *profileNode)
 {
     cJSON *node;
 
-    if (profileNode == NULL || profileNode->type != cJSON_Object) {
+    if (!cJSON_IsObject(profileNode)) {
         return GL_FALSE;
     }
 
     node = cJSON_GetObjectItem(profileNode, "match");
     if (node != NULL) {
-        if (node->type == cJSON_String) {
+        if (cJSON_IsString(node)) {
             return ExecutableNameMatches(parser, node->valuestring);
-        } else if (node->type == cJSON_Array) {
+        } else if (cJSON_IsArray(node)) {
             for (node = node->child; node != NULL; node = node->next) {
-                if (node->type == cJSON_String
+                if (cJSON_IsString(node)
                         && ExecutableNameMatches(parser, node->valuestring)) {
                     return GL_TRUE;
                 }
@@ -526,13 +526,13 @@ static GLboolean ParseProfileVendorNode(ParserState *parser, cJSON *vendorNode)
 {
     cJSON *node;
 
-    if (vendorNode == NULL || vendorNode->type != cJSON_Object) {
+    if (!cJSON_IsObject(vendorNode)) {
         return GL_TRUE;
     }
 
     node = cJSON_GetObjectItem(vendorNode, "rule_name");
     if (node != NULL) {
-        if (node->type != cJSON_String) {
+        if (!cJSON_IsString(node)) {
             return GL_TRUE;
         }
         return ResolveRule(parser, node->valuestring);
@@ -546,7 +546,7 @@ static GLboolean ParseProfileNode(ParserState *parser, cJSON *profileNode)
     cJSON *node;
 
     node = cJSON_GetObjectItem(profileNode, "vendors");
-    if (node != NULL && node->type == cJSON_Array) {
+    if (cJSON_IsArray(node)) {
         for (node = node->child; node != NULL; node = node->next) {
             if (!ParseProfileVendorNode(parser, node)) {
                 return GL_FALSE;
@@ -555,7 +555,7 @@ static GLboolean ParseProfileNode(ParserState *parser, cJSON *profileNode)
     }
 
     node = cJSON_GetObjectItem(profileNode, "override");
-    if (node != NULL && node->type == cJSON_True) {
+    if (cJSON_IsTrue(node)) {
         parser->overrideProfile = GL_TRUE;
     }
 
@@ -579,7 +579,7 @@ static GLboolean ParseProfileFile(ParserState *parser, const char *path)
     }
 
     node = cJSON_GetObjectItem(root, "profiles");
-    if (node != NULL && node->type == cJSON_Array) {
+    if (cJSON_IsArray(node)) {
         for (node = node->child; node != NULL; node = node->next) {
             if (ProfileNodeMatches(parser, node)) {
                 ret = ParseProfileNode(parser, node);
